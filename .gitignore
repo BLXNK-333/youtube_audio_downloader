@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+.idea/
+pyrightconfig.json
+.flake8
+.env
