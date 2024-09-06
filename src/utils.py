@@ -19,23 +19,19 @@ class Entity(StrEnum):
     BAD_LINK = "BAD_LINK"
 
 
-class UrlPrefix(StrEnum):
-    VIDEO = "https://www.youtube.com/watch?v="
-    PLAYLIST = "https://www.youtube.com/playlist?list="
-    SHARE = "https://youtu.be/"
+def extract_type_and_id(url: str):
+    video_pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11})"
+    playlist_pattern = r"(?:list=)([0-9A-Za-z_-]{13,})"
 
+    video_match = re.search(video_pattern, url)
+    playlist_match = re.search(playlist_pattern, url)
 
-def what_entity(url: str) -> str:
-    if url.startswith(UrlPrefix.PLAYLIST):
-        return Entity.PLAYLIST
-    if url.startswith(UrlPrefix.VIDEO) or url.startswith(UrlPrefix.SHARE):
-        return Entity.VIDEO
-
-    return Entity.BAD_LINK
-
-
-def extract_id_from_url(url: str):
-    pass
+    if video_match:
+        return Entity.VIDEO, video_match.group(1)
+    elif playlist_match:
+        return Entity.PLAYLIST, playlist_match.group(1)
+    else:
+        return Entity.BAD_LINK, ""
 
 
 def resize_image(image_data, max_width=300):
@@ -80,14 +76,6 @@ def download_audio(url, save_path):
         'outtmpl': os.path.join(save_path, '%(title)s.%(ext)s'),
         'writethumbnail': True,  # Загружаем миниатюры
         'writemetadata': True,  # Сохранение метаданных
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'opus',
-            'preferredquality': '0',  # Максимальное качество
-        }],
-        'merge_output_format': 'opus',  # Указываем Opus как конечный контейнер
-        'noplaylist': True,  # Скачиваем файлы по одному
-        'dateafter': 'now-7y',  # Только видео, опубликованные не более 7 лет назад
         'headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         },
@@ -95,6 +83,16 @@ def download_audio(url, save_path):
 
     with YoutubeDL(ydl_options) as ydl:
         ydl.download([url])
+
+
+def list_formats(video_url):
+    ydl_opts = {
+        'listformats': True
+        # Эта опция выводит список всех доступных форматов, но не скачивает видео
+    }
+
+    with YoutubeDL(ydl_opts) as ydl:
+        ydl.extract_info(video_url, download=False)
 
 
 if __name__ == '__main__':
@@ -109,3 +107,7 @@ if __name__ == '__main__':
         download_audio(url, save_dir)
     except Exception as e:
         print(e)
+
+    # url = "https://www.youtube.com/watch?v=U-xw6e-62fw"
+    # list_formats(url)
+
