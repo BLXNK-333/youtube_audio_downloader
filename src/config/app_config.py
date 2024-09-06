@@ -13,7 +13,7 @@ class Settings:
     write_thumbnail: bool
     write_metadata: bool
     audio_codec: str
-    final_audio_container: str
+    audio_ext: str
     thumbnail_resize: bool
     thumbnail_max_width: int
     download_directory: str
@@ -44,7 +44,7 @@ class ConfigManager:
                         write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
                         write_metadata=env.bool("WRITE_METADATA", True),
                         audio_codec=env.str("AUDIO_CODEC", "opus"),
-                        final_audio_container=env.str("FINAL_AUDIO_CONTAINER", "opus"),
+                        audio_ext=env.str("AUDUO_EXT", "opus"),
                         thumbnail_resize=env.bool("THUMBNAIL_RESIZE", True),
                         thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
                         download_directory=env.str("DOWNLOAD_DIRECTORY", ""),
@@ -56,4 +56,12 @@ class ConfigManager:
 
 # Функция для получения текущей конфигурации
 def get_config(env_file: str = ".env") -> Config:
+    """
+    При вызове возвращает ссылку на один и тот же объект конфигурации,
+    реализован singleton.
+
+    :param env_file: (str) Путь до файла ".env", необязательный параметр.
+    :return: (Config)
+    """
+
     return ConfigManager.load_config(env_file)
