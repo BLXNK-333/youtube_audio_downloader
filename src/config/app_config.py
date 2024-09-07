@@ -12,7 +12,6 @@ class Api:
 class Settings:
     write_thumbnail: bool
     write_metadata: bool
-    audio_codec: str
     audio_ext: str
     thumbnail_resize: bool
     thumbnail_max_width: int
@@ -43,8 +42,7 @@ class ConfigManager:
                     settings=Settings(
                         write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
                         write_metadata=env.bool("WRITE_METADATA", True),
-                        audio_codec=env.str("AUDIO_CODEC", "opus"),
-                        audio_ext=env.str("AUDUO_EXT", "opus"),
+                        audio_ext=env.str("AUDIO_EXT", "ogg"),
                         thumbnail_resize=env.bool("THUMBNAIL_RESIZE", True),
                         thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
                         download_directory=env.str("DOWNLOAD_DIRECTORY", ""),

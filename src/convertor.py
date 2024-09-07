@@ -2,9 +2,8 @@ import subprocess
 from PIL import Image
 from PIL.Image import Resampling
 from io import BytesIO
-import os
 
-from src.config.app_config import get_config
+from .config.app_config import get_config
 
 
 class Convertor:
@@ -80,16 +79,3 @@ class Convertor:
         ]
 
         self._execute_ffmpeg(cmd)
-
-
-# Пример использования
-if __name__ == "__main__":
-    save_directory = "/home/blxnk/Downloads/yt_downloader"
-    audio_path = os.path.join(save_directory, "ПОШЛАЯ МОЛЛИ – АДСКАЯ КОЛЫБЕЛЬНАЯ.webm")
-    cover_path = os.path.join(save_directory, "ПОШЛАЯ МОЛЛИ – АДСКАЯ КОЛЫБЕЛЬНАЯ.webp")
-    output_with_thumbnail = os.path.join(save_directory, "output_with_thumbnail.ogg")
-    output_without_thumbnail = os.path.join(save_directory, "output_without_thumbnail.ogg")
-
-    conv = Convertor()
-    # conv.convert_with_thumbnail(audio_path, cover_path, output_with_thumbnail)
-    conv.convert_without_thumbnail(audio_path, output_without_thumbnail)
