@@ -17,6 +17,8 @@ class Settings:
     thumbnail_max_width: int
     download_directory: str
     debug_mode: bool
+    filename_format: str
+    useragent: str
 
 
 @dataclass
@@ -37,7 +39,7 @@ class ConfigManager:
                 env.read_env(env_file)
                 cls._instance = Config(
                     api=Api(
-                        yt_token=env("API_KEY_YOUTUBE")
+                        yt_token=env.str("API_KEY_YOUTUBE")
                     ),
                     settings=Settings(
                         write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
@@ -46,7 +48,9 @@ class ConfigManager:
                         thumbnail_resize=env.bool("THUMBNAIL_RESIZE", True),
                         thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
                         download_directory=env.str("DOWNLOAD_DIRECTORY", ""),
-                        debug_mode=env.bool("DEBUG_MODE", False)
+                        debug_mode=env.bool("DEBUG_MODE", False),
+                        filename_format=env.str("FILENAME_FORMAT", "%(title)s.%(ext)s"),
+                        useragent=env.str("USERAGENT", "")
                     )
                 )
             return cls._instance

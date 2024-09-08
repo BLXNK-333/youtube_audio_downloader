@@ -43,15 +43,8 @@ class Convertor:
 
         return stdout, stderr
 
-    def _get_codec_settings(self):
-        if self._audio_ext not in Convertor._codec_map:
-            raise Exception(
-                f"Not supported format: {self._audio_ext}\n"
-                f"Use AUDIO_EXT=[{'|'.join(Convertor._codec_map.keys())}] in settings")
-        return Convertor._codec_map.get(self._audio_ext)
-
     def convert_with_thumbnail(self, audio_path: str, cover_path: str, output_file: str):
-        audio_codec, image_codec = self._get_codec_settings()
+        audio_codec, image_codec = Convertor._codec_map[self._audio_ext]
 
         cover_data = self._convert_image(cover_path)
         cmd = [
@@ -69,7 +62,7 @@ class Convertor:
         self._execute_ffmpeg(cmd, cover_data.read())
 
     def convert_without_thumbnail(self, audio_path: str, output_file: str):
-        audio_codec, image_codec = self._get_codec_settings()
+        audio_codec, image_codec = Convertor._codec_map[self._audio_ext]
 
         cmd = [
             "ffmpeg",

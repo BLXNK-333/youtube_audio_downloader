@@ -1,9 +1,8 @@
 import argparse
-from src import (
-    get_config,
-    load_logger_config,
-    download_audio
-)
+
+from src.config.app_config import get_config
+from src.config.logging_config import load_logger_config
+from src.scripts import download_audio
 
 
 def main():
@@ -43,5 +42,5 @@ def get(url):
 
 
 if __name__ == '__main__':
-    # main()
-    get("https://www.youtube.com/playlist?list=PL-adxGZ1y-OXzOAXG5gB0pF5g5Pw7jBEG")
+    main()
+    # get("https://www.youtube.com/playlist?list=PL-adxGZ1y-OXzOAXG5gB0pF5g5Pw7jBEG")
