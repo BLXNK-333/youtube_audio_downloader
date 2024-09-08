@@ -1,3 +1,7 @@
-from .scripts import download_audio
-from .config.app_config import get_config
-from .config.logging_config import load_logger_config
+import os
+
+# Установка переменных окружения
+os.environ["ALL_PROXY"] = ""
+os.environ["NO_PROXY"] = ""
+os.environ["all_proxy"] = ""
+os.environ["no_proxy"] = ""
