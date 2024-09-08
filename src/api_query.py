@@ -1,3 +1,5 @@
+import pprint
+
 import requests
 from src.config.app_config import get_config
 
@@ -14,7 +16,30 @@ class ApiQuery:
         data = response.json()
         return data['items'][0]['snippet']['title']
 
-    def get_all_playlist_videos(self, playlist_id):
+    def get_video_details(self, video_id: str):
+        url = f"{self._base_url}/videos"
+        params = {
+            'part': 'snippet',
+            'id': video_id,
+            'key': self._api_key_yt
+        }
+
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if 'items' in data and len(data['items']) > 0:
+                snippet = data['items'][0]['snippet']
+                return {
+                    'title': snippet['title'],
+                    'published': snippet['publishedAt'],
+                    'url': f"https://www.youtube.com/watch?v={video_id}"
+                }
+            else:
+                raise ValueError("Видео с указанным ID не найдено.")
+        else:
+            response.raise_for_status()
+
+    def get_playlist_videos_details(self, playlist_id):
         videos = {}
         url = f"{self._base_url}/playlistItems"
         params = {
@@ -48,3 +73,8 @@ class ApiQuery:
                 break
 
         return videos
+
+#
+# if __name__ == '__main__':
+#     AQ = ApiQuery()
+#     pprint.pprint(AQ.get_video_details("YYwmlS8wkW0"))
