@@ -7,6 +7,7 @@ from yt_dlp import YoutubeDL
 
 from src.config.app_config import get_config
 from src.convertor import Convertor
+from src.utils import remove_empty_files
 
 
 class Downloader:
@@ -111,6 +112,7 @@ class Downloader:
             tmp_path = os.path.join(save_path, "tmp")
             if os.path.exists(tmp_path):
                 shutil.rmtree(tmp_path)
+            remove_empty_files(save_path)
 
     def list_available_formats(self, video_url: str) -> None:
         """
