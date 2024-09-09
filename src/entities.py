@@ -1,4 +1,5 @@
 from enum import StrEnum
+from dataclasses import dataclass
 
 
 class YoutubeLink(StrEnum):
@@ -12,3 +13,10 @@ class AudioExt(StrEnum):
     MP3 = "mp3"
     M4A = "m4a"
     WEBM = "webm"
+
+
+@dataclass
+class Snippet:
+    title: str
+    url: str
+    published: str
