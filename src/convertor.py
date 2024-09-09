@@ -1,4 +1,8 @@
+import os
 import subprocess
+import logging
+from typing import Optional
+
 from PIL import Image
 from PIL.Image import Resampling
 from io import BytesIO
@@ -15,6 +19,7 @@ class Convertor:
 
     def __init__(self):
         self._config = get_config()
+        self._logger = logging.getLogger()
         self._audio_ext = self._config.settings.audio_ext
         self._resize = self._config.settings.thumbnail_resize
         self._max_width = self._config.settings.thumbnail_max_width
@@ -39,11 +44,14 @@ class Convertor:
         stdout, stderr = process.communicate(input=input_data)
 
         if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode, cmd, output=stderr.decode())
+            error_message = stderr.decode()
+            self._logger.error(
+                f"FFmpeg command failed with return code {process.returncode}: {error_message}")
+            return None, error_message  # Или другой способ обработки ошибки
 
         return stdout, stderr
 
-    def convert_with_thumbnail(self, audio_path: str, cover_path: str, output_file: str):
+    def _convert_with_thumbnail(self, audio_path: str, cover_path: str, output_file: str):
         audio_codec, image_codec = Convertor._codec_map[self._audio_ext]
 
         cover_data = self._convert_image(cover_path)
@@ -61,7 +69,7 @@ class Convertor:
 
         self._execute_ffmpeg(cmd, cover_data.read())
 
-    def convert_without_thumbnail(self, audio_path: str, output_file: str):
+    def _convert_without_thumbnail(self, audio_path: str, output_file: str):
         audio_codec, image_codec = Convertor._codec_map[self._audio_ext]
 
         cmd = [
@@ -72,3 +80,23 @@ class Convertor:
         ]
 
         self._execute_ffmpeg(cmd)
+
+    def convert(self, audio_path: str, cover_path: Optional[str]) -> None:
+        """
+        Сохраняет конвертированный файл на 1 каталог выше, предполагается
+        что исходные файлы находятся в ./tmp
+
+        :param audio_path: (str) Путь к аудио файлу.
+        :param cover_path: (Optional[str]) Путь к миниатюре или None.
+        :return: (None)
+        """
+
+        out_filename, ext = os.path.splitext(os.path.basename(audio_path))
+        parent_dir = os.path.dirname(os.path.dirname(audio_path))
+        out_filepath = os.path.join(parent_dir, f"{out_filename}.{self._audio_ext}")
+
+        if cover_path:
+            self._convert_with_thumbnail(audio_path, cover_path, out_filepath)
+        else:
+            self._convert_without_thumbnail(audio_path, out_filepath)
+
