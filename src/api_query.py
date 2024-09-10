@@ -1,9 +1,8 @@
 import logging
 from typing import List, Dict
-import pprint
 
 import requests
-from src.config.app_config import get_config
+from .config.app_config import get_config
 
 
 class ApiQuery:
@@ -80,11 +79,3 @@ class ApiQuery:
                 break
         self._logger.info(f"Video details received, quantity: {len(snippet_videos)}")
         return snippet_videos
-
-
-# if __name__ == '__main__':
-#     AQ = ApiQuery()
-#     response = AQ.get_video_details("YYwmlS8wkW0")
-#     obj = response[0]
-#
-#     pprint.pprint(obj)

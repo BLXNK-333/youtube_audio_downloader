@@ -2,7 +2,7 @@ import os
 import re
 from typing import Tuple
 
-from src.entities import YoutubeLink
+from .entities import YoutubeLink
 
 
 def extract_type_and_id(url: str) -> Tuple[str, str]:

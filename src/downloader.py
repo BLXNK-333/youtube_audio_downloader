@@ -6,9 +6,9 @@ import logging
 
 from yt_dlp import YoutubeDL
 
-from src.config.app_config import get_config
-from src.convertor import Convertor
-from src.utils import remove_empty_files
+from .config.app_config import get_config
+from .convertor import Convertor
+from .utils import remove_empty_files
 
 
 class Downloader:
@@ -141,14 +141,3 @@ class Downloader:
 
         with YoutubeDL(ydl_opts) as ydl:
             ydl.extract_info(video_url, download=False)
-
-
-if __name__ == '__main__':
-    URLS = [
-        "https://www.youtube.com/watch?v=U-xw6e-62fw"
-    ]
-
-    conv = Convertor()
-    DL = Downloader(convertor=conv)
-    # DL.list_available_formats("https://www.youtube.com/watch?v=3YUNQoPrJGk")
-    DL.download_links(URLS)

@@ -1,7 +1,7 @@
 import logging
 import re
 
-from src.entities import AudioExt
+from .entities import AudioExt
 
 logger = logging.getLogger()
 

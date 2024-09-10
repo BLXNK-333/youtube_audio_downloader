@@ -4,8 +4,8 @@ import os
 import logging
 from datetime import datetime
 
-from src.config.app_config import get_config
-from src.entities import Snippet
+from .config.app_config import get_config
+from .entities import Snippet
 
 
 class Filter:
