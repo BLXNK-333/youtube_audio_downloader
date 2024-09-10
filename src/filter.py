@@ -1,5 +1,8 @@
 from typing import Optional, List, Dict
+import re
 import os
+import logging
+from datetime import datetime
 
 from src.config.app_config import get_config
 from src.entities import Snippet
@@ -8,6 +11,8 @@ from src.entities import Snippet
 class Filter:
     def __init__(self):
         self._config = get_config()
+        self._logger = logging.getLogger()
+        self._filter_date = self._config.settings.filter_date
         self._download_directory = self._config.settings.download_directory
 
     @staticmethod
@@ -30,6 +35,27 @@ class Filter:
                             if os.path.isfile(os.path.join(directory, f))}
         return [sn for sn in snipped_objs if sn.title not in downloaded_names]
 
+    def _filter_by_download_date(self, snippet_objs: List[Snippet]) -> List[Snippet]:
+        filter_date = re.sub(r"[\[\]\s]", "", self._filter_date).lower()
+
+        def filter_func(snippet: Snippet) -> bool:
+            try:
+                # Преобразуем дату публикации в год
+                publication_year = datetime.strptime(snippet.published,
+                                                     "%Y-%m-%dT%H:%M:%SZ").year
+                # Формируем условие фильтрации и оцениваем его
+                return eval(filter_date.replace("x", str(publication_year)))
+            except (ValueError, SyntaxError) as e:
+                self._logger.debug(
+                    f"An error occurred when trying to apply a date filter "
+                    f"to an expression:\n {e}"
+                    f"\n title: {snippet.title}"
+                    f"\n published: {snippet.published}"
+                )
+                return False
+
+        return [sn for sn in snippet_objs if filter_func(sn)]
+
     def apply_filters(
             self,
             video_snippets: List[Dict[str, str]],
@@ -41,5 +67,6 @@ class Filter:
 
         snipped_objs = self._convert_dict_to_obj(video_snippets)
         filtered_snippets = self._filter_already_downloaded(snipped_objs, directory)
+        filtered_snippets = self._filter_by_download_date(filtered_snippets)
 
         return self._convert_obj_to_list_urls(filtered_snippets)

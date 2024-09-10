@@ -1,12 +1,8 @@
 import os
 import re
 from typing import Tuple
-import logging
 
-from .entities import YoutubeLink, AudioExt
-
-
-logger = logging.getLogger()
+from src.entities import YoutubeLink
 
 
 def extract_type_and_id(url: str) -> Tuple[str, str]:
@@ -29,24 +25,6 @@ def extract_type_and_id(url: str) -> Tuple[str, str]:
         return YoutubeLink.PLAYLIST, playlist_match.group(1)
     else:
         return YoutubeLink.BAD_LINK, ""
-
-
-def validate_audio_format(output_format: str) -> bool:
-    """
-    Проверяет формат заданный в настройках, если передан неподдерживаемый,
-    отправляет в stdout сообщение об ошибке.
-
-    :param output_format: (str) формат AUDIO_EXT из настроек.
-    :return: (bool) True, если поддерживается, иначе False.
-    """
-
-    supported_formats = {AudioExt.OGG, AudioExt.M4A, AudioExt.MP3}
-    if output_format not in supported_formats:
-        logger.error(
-            f"\n End audio container not supported: {output_format}\n"
-            f" Use AUDIO_EXT=[{'|'.join(supported_formats)}] in settings")
-        return False
-    return True
 
 
 def remove_empty_files(directory: str) -> None:

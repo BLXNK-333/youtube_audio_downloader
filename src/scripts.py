@@ -1,12 +1,13 @@
 import logging
-from pprint import pprint
 
+from .config.app_config import get_config
 from .entities import YoutubeLink
-from .utils import extract_type_and_id, validate_audio_format
 from .api_query import ApiQuery
 from .convertor import Convertor
 from .downloader import Downloader
-from .config.app_config import get_config
+from .filter import Filter
+from .utils import extract_type_and_id
+from .validator import validate_audio_format, validate_date_filter
 
 
 logger = logging.getLogger()
@@ -26,7 +27,11 @@ def download_audio(link: str):
     if not validate_audio_format(config.settings.audio_ext):
         return
 
+    if not validate_date_filter(config.settings.filter_date):
+        return
+
     query = ApiQuery()
+    _filter = Filter()
     convertor = Convertor()
     DL = Downloader(convertor=convertor)
 

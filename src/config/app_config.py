@@ -19,6 +19,7 @@ class Settings:
     debug_mode: bool
     filename_format: str
     useragent: str
+    filter_date: str
 
 
 @dataclass
@@ -50,7 +51,8 @@ class ConfigManager:
                         download_directory=env.str("DOWNLOAD_DIRECTORY", ""),
                         debug_mode=env.bool("DEBUG_MODE", False),
                         filename_format=env.str("FILENAME_FORMAT", "%(title)s.%(ext)s"),
-                        useragent=env.str("USERAGENT", "")
+                        useragent=env.str("USERAGENT", ""),
+                        filter_date=env.str("FILTER_DATE", "None")
                     )
                 )
             return cls._instance

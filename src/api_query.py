@@ -1,8 +1,8 @@
 from typing import List, Dict
+import pprint
 
 import requests
 from src.config.app_config import get_config
-from src.entities import Link
 
 
 class ApiQuery:
@@ -75,7 +75,10 @@ class ApiQuery:
 
         return videos
 
-#
-# if __name__ == '__main__':
-#     AQ = ApiQuery()
-#     pprint.pprint(AQ.get_video_details("YYwmlS8wkW0"))
+
+if __name__ == '__main__':
+    AQ = ApiQuery()
+    response = AQ.get_video_details("YYwmlS8wkW0")
+    obj = response[0]
+
+    pprint.pprint(obj)
