@@ -35,7 +35,7 @@ def main():
     download_audio(args.url)
 
 
-def get(url):
+def backdoor(url: str):
     config = get_config()
     load_logger_config(debug_mode=config.settings.debug_mode)
     download_audio(url)
@@ -43,4 +43,5 @@ def get(url):
 
 if __name__ == '__main__':
     main()
-    # get("https://www.youtube.com/playlist?list=PL-adxGZ1y-OXzOAXG5gB0pF5g5Pw7jBEG")
+    # backdoor("https://www.youtube.com/playlist?list=PL-adxGZ1y-OXzOAXG5gB0pF5g5Pw7jBEG")
+    # backdoor("https://www.youtube.com/watch?v=7F5MKaJMxDc")

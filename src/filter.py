@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 import re
 import os
 import logging
@@ -59,14 +59,38 @@ class Filter:
     def apply_filters(
             self,
             video_snippets: List[Dict[str, str]],
-            playlist_name: Optional[str] = None
-    ) -> List[str]:
+            playlist_name: Optional[str] = None,
+            filter_downloaded: bool = True,
+            filter_date: bool = True
+    ) -> Tuple[List[str], int]:
+        """
+        Применяет заданные фильтры к списку видео и возвращает отфильтрованные URL.
+
+        :param video_snippets: (List[Dict[str, str]]) Список словарей с информацией
+            о видео.
+        :param playlist_name: (Optional[str]) Имя плейлиста для определения директории
+            загрузки. Если не указано, используется основная директория загрузки.
+        :param filter_downloaded: (bool) Если True, фильтрует уже загруженные видео.
+        :param filter_date: (bool) Если True, применяет фильтр по дате публикации.
+        :return: (Tuple[List[str], int]) Кортеж, содержащий список отфильтрованных
+            URL и количество видео до применения фильтра уже загруженных файлов.
+        """
+
         directory = self._download_directory
         if playlist_name:
             directory = os.path.join(directory, playlist_name)
+        os.makedirs(directory, exist_ok=True)
 
-        snipped_objs = self._convert_dict_to_obj(video_snippets)
-        filtered_snippets = self._filter_already_downloaded(snipped_objs, directory)
-        filtered_snippets = self._filter_by_download_date(filtered_snippets)
+        snippet_objs = self._convert_dict_to_obj(video_snippets)
+        len_snippets = len(snippet_objs)
 
-        return self._convert_obj_to_list_urls(filtered_snippets)
+        if filter_date:
+            snippet_objs = self._filter_by_download_date(snippet_objs)
+            len_snippets = len(snippet_objs)
+        if filter_downloaded:
+            snippet_objs = self._filter_already_downloaded(snippet_objs, directory)
+            self._logger.info(
+                f"[{len_snippets - len(snippet_objs)} from {len_snippets}] "
+                f"already downloaded."
+            )
+        return self._convert_obj_to_list_urls(snippet_objs), len_snippets

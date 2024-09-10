@@ -14,6 +14,9 @@ logging_config = {
         },
         "easy": {
             "format": "[%(asctime)s] #%(levelname)-8s - %(message)s"
+        },
+        "indented": {
+            "format": "   %(message)s"  # Формат с отступом для yt-dlp
         }
     },
     "handlers": {
@@ -28,9 +31,21 @@ logging_config = {
             "level": "ERROR",
             "formatter": "default",  # Применяем формат easy для stderr
             "stream": sys.stderr
+        },
+        "yt_dlp_handler": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "indented",  # Применяем формат с отступом для yt-dlp
+            "stream": sys.stdout
         }
     },
-    "loggers": {},
+    "loggers": {
+        "yt-dlp": {
+            "handlers": ["yt_dlp_handler"],
+            "level": "DEBUG",
+            "propagate": False
+        }
+    },
     "root": {
         "level": "DEBUG",
         "formatter": "default",  # Используем формат default для root

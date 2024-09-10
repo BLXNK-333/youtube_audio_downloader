@@ -1,3 +1,4 @@
+import time
 from typing import Dict, Any, List, Tuple, Optional
 import os
 import shutil
@@ -21,6 +22,7 @@ class Downloader:
         self._config = get_config()
         self._convertor = convertor
         self._logger = logging.getLogger()
+        self._yt_dlp_logger = logging.getLogger('yt-dlp')
 
         self._write_thumbnail = self._config.settings.write_thumbnail
         self._write_metadata = self._config.settings.write_metadata
@@ -45,6 +47,7 @@ class Downloader:
             'writemetadata': self._write_metadata,  # Загружаем метаданные
             'progress_hooks': [self._download_complete_hook],  # Хук для обработки
             'headers': {'User-Agent': self._useragent},
+            'logger': self._yt_dlp_logger
         }
 
     def _download_complete_hook(self, d) -> None:
@@ -72,7 +75,7 @@ class Downloader:
         self,
         urls: List[str],
         playlist_name: Optional[str] = None,
-        counter: int = 0
+        playlist_length: int = 1
     ) -> None:
         """
         Скачивает аудио по списку из urls и сохраняет в каталоге save_path.
@@ -80,11 +83,11 @@ class Downloader:
         :param urls: (List[str]) Список ссылок для скачивания аудио.
         :param playlist_name: (Optional[str]) Название плейлиста, если скачивается
             плейлист.
-        :param counter: (int) Число с которого начнется счетчик загрузок,
-            нужен для логов.
+        :param playlist_length: (int) Количество элементов в плейлисте (возможно
+            после фильтра), параметр нужен для логирования.
         :return: None
         """
-        n = counter + len(urls)
+        counter = playlist_length - len(urls)
         save_path = self._download_directory
         if playlist_name:
             save_path = os.path.join(save_path, playlist_name)
@@ -92,19 +95,32 @@ class Downloader:
         try:
             with self._create_ydl(save_path) as ydl:
                 for url in urls:
+                    print()  # Так надо
                     try:
                         counter += 1
-                        self._logger.info(f"Loading... [{counter}/{n}]")
-                        ydl.download([url])
-                        audio_path, thumbnail_path = self._hook_callback
-                        self._convertor.convert(audio_path, thumbnail_path)
+                        self._logger.info(f"Loading... [{counter}/{playlist_length}]")
+                        for attempt in range(3):
+                            try:
+                                ydl.download([url])
+                                audio_path, thumbnail_path = self._hook_callback
+                                self._convertor.convert(audio_path, thumbnail_path)
 
-                        if audio_path:
-                            os.remove(audio_path)
-                        if thumbnail_path:
-                            os.remove(thumbnail_path)
+                                if audio_path:
+                                    os.remove(audio_path)
+                                if thumbnail_path:
+                                    os.remove(thumbnail_path)
+                                break
+                            except Exception as e:
+                                self._yt_dlp_logger.warning(
+                                    f"Attempt {attempt + 1}/3 failed for {url}: {e}")
+                                time.sleep(1)
+                                if attempt == 2:
+                                    raise e
+                            finally:
+                                time.sleep(1)
 
                     except Exception as e:
+                        counter -= 1
                         self._logger.warning(f"Error loading {url}: {e}")
         except KeyboardInterrupt:
             self._logger.info("Download was interrupted by the user.")

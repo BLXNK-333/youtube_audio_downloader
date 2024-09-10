@@ -1,3 +1,4 @@
+import logging
 from typing import List, Dict
 import pprint
 
@@ -8,6 +9,7 @@ from src.config.app_config import get_config
 class ApiQuery:
     def __init__(self):
         self._config = get_config()
+        self._logger = logging.getLogger()
         self._api_key_yt = self._config.api.yt_token
         self._base_url = "https://www.googleapis.com/youtube/v3"
 
@@ -15,7 +17,9 @@ class ApiQuery:
         url = f"{self._base_url}/playlists?part=snippet&id={playlist_id}&key={self._api_key_yt}"
         response = requests.get(url)
         data = response.json()
-        return data['items'][0]['snippet']['title']
+        title = data['items'][0]['snippet']['title']
+        self._logger.info(f"Playlist name received: {title}")
+        return title
 
     def get_video_details(self, video_id: str) -> List[Dict[str, str]]:
         url = f"{self._base_url}/videos"
@@ -30,18 +34,20 @@ class ApiQuery:
             data = response.json()
             if 'items' in data and len(data['items']) > 0:
                 snippet = data['items'][0]['snippet']
-                return [{
+                snippet_videos = [{
                     'title': snippet['title'],
                     'url': f"https://www.youtube.com/watch?v={video_id}",
                     'published': snippet['publishedAt'],
                 }]
+                self._logger.info(f"Video details received, quantity: {len(snippet_videos)}")
+                return snippet_videos
             else:
-                raise ValueError("Видео с указанным ID не найдено.")
+                self._logger.error(f"No video with the specified ID was found. ID: {video_id}")
         else:
             response.raise_for_status()
 
     def get_playlist_videos_details(self, playlist_id: str) -> List[Dict[str, str]]:
-        videos = []
+        snippet_videos = []
         url = f"{self._base_url}/playlistItems"
         params = {
             'part': 'snippet',
@@ -61,7 +67,7 @@ class ApiQuery:
             for item in data['items']:
                 snippet = item['snippet']
                 videoId = snippet['resourceId']['videoId']
-                videos.append({
+                snippet_videos.append({
                     'title': snippet['title'],
                     'url': f"https://www.youtube.com/watch?v={videoId}",
                     'published': snippet['publishedAt'],
@@ -72,13 +78,13 @@ class ApiQuery:
                 params['pageToken'] = next_page_token
             else:
                 break
+        self._logger.info(f"Video details received, quantity: {len(snippet_videos)}")
+        return snippet_videos
 
-        return videos
 
-
-if __name__ == '__main__':
-    AQ = ApiQuery()
-    response = AQ.get_video_details("YYwmlS8wkW0")
-    obj = response[0]
-
-    pprint.pprint(obj)
+# if __name__ == '__main__':
+#     AQ = ApiQuery()
+#     response = AQ.get_video_details("YYwmlS8wkW0")
+#     obj = response[0]
+#
+#     pprint.pprint(obj)

@@ -22,7 +22,7 @@ def download_audio(link: str):
     :return: None
     """
     config = get_config()
-    entity, entity_id = extract_type_and_id(link)
+    link, link_id = extract_type_and_id(link)
 
     if not validate_audio_format(config.settings.audio_ext):
         return
@@ -35,14 +35,26 @@ def download_audio(link: str):
     convertor = Convertor()
     DL = Downloader(convertor=convertor)
 
-    if entity == YoutubeLink.VIDEO:
-        # DL.download_links()
-        pass
+    if link == YoutubeLink.VIDEO:
+        snippets = query.get_video_details(link_id)
+        filtered_snippets, len_snippets = _filter.apply_filters(
+            snippets,
+            filter_date=False
+        )
+        DL.download_links(filtered_snippets)
 
-    elif entity == YoutubeLink.PLAYLIST:
-        # videos = AQ.get_all_playlist_videos(entity_id)
-        # pprint(videos)
-        pass
+    elif link == YoutubeLink.PLAYLIST:
+        playlist_name = query.get_playlist_title(link_id)
+        snippets = query.get_playlist_videos_details(link_id)
+        filtered_snippets, len_snippets = _filter.apply_filters(
+            snippets,
+            playlist_name=playlist_name
+        )
+        DL.download_links(
+            urls=filtered_snippets,
+            playlist_name=playlist_name,
+            playlist_length=len_snippets
+        )
 
     else:
         logger.warning(f"Bad link: {link}")
