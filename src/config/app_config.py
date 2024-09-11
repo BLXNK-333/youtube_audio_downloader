@@ -1,3 +1,4 @@
+from typing import Optional
 from dataclasses import dataclass
 from environs import Env
 from threading import Lock
@@ -6,26 +7,32 @@ from threading import Lock
 @dataclass
 class Api:
     yt_token: str
+    endpoint: str
 
 
 @dataclass
-class Settings:
+class Download:
     write_thumbnail: bool
     write_metadata: bool
     audio_ext: str
     thumbnail_resize: bool
     thumbnail_max_width: int
     download_directory: str
-    debug_mode: bool
     filename_format: str
     useragent: str
-    filter_date: str
+
+
+@dataclass
+class Extended:
+    debug_mode: bool
+    filter_date: Optional[str]
 
 
 @dataclass
 class Config:
     api: Api
-    settings: Settings
+    download: Download
+    extended: Extended
 
 
 class ConfigManager:
@@ -33,28 +40,35 @@ class ConfigManager:
     _lock: Lock = Lock()
 
     @classmethod
+    def __create_config(cls, env: Env) -> None:
+        cls._instance = Config(
+            api=Api(
+                yt_token=env.str("API_KEY_YOUTUBE"),
+                endpoint=env.str("ENDPOINT")
+            ),
+            download=Download(
+                write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
+                write_metadata=env.bool("WRITE_METADATA", True),
+                audio_ext=env.str("AUDIO_EXT", "best/bestaudio"),
+                thumbnail_resize=env.bool("THUMBNAIL_RESIZE", False),
+                thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
+                download_directory=env.str("DOWNLOAD_DIRECTORY", "YouTube"),
+                filename_format=env.str("FILENAME_FORMAT", "%(title)s.%(ext)s"),
+                useragent=env.str("USERAGENT", ""),
+            ),
+            extended=Extended(
+                debug_mode=env.bool("DEBUG_MODE", False),
+                filter_date=env.str("FILTER_DATE", None)
+            )
+        )
+
+    @classmethod
     def load_config(cls, env_file: str) -> Config:
         with cls._lock:
             if cls._instance is None:
                 env = Env()
                 env.read_env(env_file)
-                cls._instance = Config(
-                    api=Api(
-                        yt_token=env.str("API_KEY_YOUTUBE")
-                    ),
-                    settings=Settings(
-                        write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
-                        write_metadata=env.bool("WRITE_METADATA", True),
-                        audio_ext=env.str("AUDIO_EXT", "ogg"),
-                        thumbnail_resize=env.bool("THUMBNAIL_RESIZE", True),
-                        thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
-                        download_directory=env.str("DOWNLOAD_DIRECTORY", ""),
-                        debug_mode=env.bool("DEBUG_MODE", False),
-                        filename_format=env.str("FILENAME_FORMAT", "%(title)s.%(ext)s"),
-                        useragent=env.str("USERAGENT", ""),
-                        filter_date=env.str("FILTER_DATE", "None")
-                    )
-                )
+                cls.__create_config(env)
             return cls._instance
 
 

@@ -8,7 +8,7 @@ from src.scripts import download_audio
 def main():
     # Надо где-то объявить, вот объявил.
     config = get_config()
-    load_logger_config(debug_mode=config.settings.debug_mode)
+    load_logger_config(debug_mode=config.extended.debug_mode)
 
     # Создаем парсер для аргументов командной строки
     parser = argparse.ArgumentParser(
@@ -37,7 +37,7 @@ def main():
 
 def backdoor(url: str):
     config = get_config()
-    load_logger_config(debug_mode=config.settings.debug_mode)
+    load_logger_config(debug_mode=config.extended.debug_mode)
     download_audio(url)
 
 

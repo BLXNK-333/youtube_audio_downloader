@@ -12,8 +12,8 @@ class Filter:
     def __init__(self):
         self._config = get_config()
         self._logger = logging.getLogger()
-        self._filter_date = self._config.settings.filter_date
-        self._download_directory = self._config.settings.download_directory
+        self._filter_date = self._config.extended.filter_date
+        self._download_directory = self._config.download.download_directory
 
     @staticmethod
     def _convert_dict_to_obj(video_snippets: List[Dict[str, str]]) -> List[Snippet]:

@@ -24,10 +24,10 @@ def download_audio(link: str):
     config = get_config()
     link, link_id = extract_type_and_id(link)
 
-    if not validate_audio_format(config.settings.audio_ext):
+    if not validate_audio_format(config.download.audio_ext):
         return
 
-    if not validate_date_filter(config.settings.filter_date):
+    if not validate_date_filter(config.extended.filter_date):
         return
 
     query = ApiQuery()

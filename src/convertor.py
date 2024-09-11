@@ -20,9 +20,9 @@ class Convertor:
     def __init__(self):
         self._config = get_config()
         self._logger = logging.getLogger()
-        self._audio_ext = self._config.settings.audio_ext
-        self._resize = self._config.settings.thumbnail_resize
-        self._max_width = self._config.settings.thumbnail_max_width
+        self._audio_ext = self._config.download.audio_ext
+        self._resize = self._config.download.thumbnail_resize
+        self._max_width = self._config.download.thumbnail_max_width
 
     def _convert_image(self, image_path: str) -> BytesIO:
         with Image.open(image_path) as img:

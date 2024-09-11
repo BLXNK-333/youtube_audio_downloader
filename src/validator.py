@@ -15,7 +15,7 @@ def validate_audio_format(output_format: str) -> bool:
     :return: (bool) True, если поддерживается, иначе False.
     """
 
-    supported_formats = {AudioExt.OGG, AudioExt.M4A, AudioExt.MP3}
+    supported_formats = {AudioExt.OGG, AudioExt.M4A, AudioExt.MP3, AudioExt.BEST_}
     if output_format not in supported_formats:
         logger.error(
             f"\n End audio container not supported: {output_format}\n"
@@ -31,14 +31,14 @@ def validate_date_filter(filter_expression: str) -> bool:
     :param filter_expression: (str) Фильтр - логическое выражение.
     :return: (bool) True, если фильтр пройден, иначе False
     """
-    if filter_expression.lower().strip() == "none":
+    if filter_expression == "":
         return True
 
     allowed_characters = "0123456789x(){}[],!<>=orandti"
     allowed_hashset = set(allowed_characters)
     filter_str = re.sub(r"[\[\]\s]", "", filter_expression).lower()
 
-    tip_param = "TIP: Edit the FILTER_DATE parameter in the settings or set it to None."
+    tip_param = 'TIP: Edit the FILTER_DATE parameter in the settings or set it to "".'
     tip_allowed = f"TIP: List of allowed characters: {allowed_characters}"
 
     if len(filter_expression) > 100:

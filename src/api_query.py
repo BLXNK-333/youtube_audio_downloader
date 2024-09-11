@@ -10,10 +10,10 @@ class ApiQuery:
         self._config = get_config()
         self._logger = logging.getLogger()
         self._api_key_yt = self._config.api.yt_token
-        self._base_url = "https://www.googleapis.com/youtube/v3"
+        self._endpoint = self._config.api.endpoint
 
     def get_playlist_title(self, playlist_id: str) -> str:
-        url = f"{self._base_url}/playlists?part=snippet&id={playlist_id}&key={self._api_key_yt}"
+        url = f"{self._endpoint}/playlists?part=snippet&id={playlist_id}&key={self._api_key_yt}"
         response = requests.get(url)
         data = response.json()
         title = data['items'][0]['snippet']['title']
@@ -21,7 +21,7 @@ class ApiQuery:
         return title
 
     def get_video_details(self, video_id: str) -> List[Dict[str, str]]:
-        url = f"{self._base_url}/videos"
+        url = f"{self._endpoint}/videos"
         params = {
             'part': 'snippet',
             'id': video_id,
@@ -47,7 +47,7 @@ class ApiQuery:
 
     def get_playlist_videos_details(self, playlist_id: str) -> List[Dict[str, str]]:
         snippet_videos = []
-        url = f"{self._base_url}/playlistItems"
+        url = f"{self._endpoint}/playlistItems"
         params = {
             'part': 'snippet',
             'playlistId': playlist_id,

@@ -6,9 +6,9 @@ import logging
 
 from yt_dlp import YoutubeDL
 
-from .config.app_config import get_config
-from .convertor import Convertor
-from .utils import remove_empty_files
+from src.config.app_config import get_config
+from src.convertor import Convertor
+from src.utils import remove_empty_files
 
 
 class Downloader:
@@ -24,12 +24,12 @@ class Downloader:
         self._logger = logging.getLogger()
         self._yt_dlp_logger = logging.getLogger('yt-dlp')
 
-        self._write_thumbnail = self._config.settings.write_thumbnail
-        self._write_metadata = self._config.settings.write_metadata
-        self._audio_ext = self._config.settings.audio_ext
-        self._useragent = self._config.settings.useragent
-        self._download_directory = self._config.settings.download_directory
-        self._filename_format = self._config.settings.filename_format
+        self._write_thumbnail = self._config.download.write_thumbnail
+        self._write_metadata = self._config.download.write_metadata
+        self._audio_ext = self._config.download.audio_ext
+        self._useragent = self._config.download.useragent
+        self._download_directory = self._config.download.download_directory
+        self._filename_format = self._config.download.filename_format
 
         self._hook_callback: Tuple[Optional[str], Optional[str]] = (None, None)
 
@@ -141,3 +141,28 @@ class Downloader:
 
         with YoutubeDL(ydl_opts) as ydl:
             ydl.extract_info(video_url, download=False)
+
+
+if __name__ == '__main__':
+    URLS = [
+        "https://www.youtube.com/watch?v=U-xw6e-62fw"
+    ]
+
+    conv = Convertor()
+    DL = Downloader(convertor=conv)
+    DL.list_available_formats("https://www.youtube.com/watch?v=3pHjAlpLmB4")
+    # DL.download_links(URLS)
+
+    # Todo:
+    #  Не для всех файлов доступно 2 формата аудио 140, 251. Иногда доступен только 1
+    #  формат. Очевидно что в логику должен передаваться что то вроде {'format': 'best/bestaudio'},
+    #  чтобы он сам выбирал лучший формат. Соответственно остальную логику, надо написать,
+    #  как обрабатывать эти случаи. Тут по сути 2 пути: 1. Оставлять в таком же формате.
+    #  2. Переконвертировать в нужный формат. Изменения затронут 2 модуля, этот и
+    #  convertor.py. Нужно написать эту логику и потестить.
+    #  Примеры таких видео:
+    #  [
+    #     "https://www.youtube.com/watch?v=3pHjAlpLmB4",
+    #     "https://www.youtube.com/watch?v=yovw3SkIcjc",
+    #     "https://www.youtube.com/watch?v=TsDf4sNVY9c"
+    #  ]
