@@ -13,7 +13,7 @@ class AudioExt(StrEnum):
     MP3 = "mp3"
     M4A = "m4a"
     WEBM = "webm"
-    BEST_ = "best/bestaudio"
+    BEST_ = "bestaudio/best"
 
 
 @dataclass

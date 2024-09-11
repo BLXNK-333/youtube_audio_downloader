@@ -15,8 +15,8 @@ logging_config = {
         "easy": {
             "format": "[%(asctime)s] #%(levelname)-8s - %(message)s"
         },
-        "indented": {
-            "format": "   %(message)s"  # Формат с отступом для yt-dlp
+        "yt_dlp_style": {
+            "format": "%(message)s"  # Формат для имитации лога yt-dlp
         }
     },
     "handlers": {
@@ -35,7 +35,7 @@ logging_config = {
         "yt_dlp_handler": {
             "class": "logging.StreamHandler",
             "level": "DEBUG",
-            "formatter": "indented",  # Применяем формат с отступом для yt-dlp
+            "formatter": "yt_dlp_style",  # Применяем формат yt-dlp, по сути рестрим.
             "stream": sys.stdout
         }
     },

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from environs import Env
 from threading import Lock
 
+from ..entities import AudioExt
+
 
 @dataclass
 class Api:
@@ -49,12 +51,12 @@ class ConfigManager:
             download=Download(
                 write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
                 write_metadata=env.bool("WRITE_METADATA", True),
-                audio_ext=env.str("AUDIO_EXT", "best/bestaudio"),
+                audio_ext=env.str("AUDIO_EXT") or AudioExt.BEST_,
                 thumbnail_resize=env.bool("THUMBNAIL_RESIZE", False),
                 thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
-                download_directory=env.str("DOWNLOAD_DIRECTORY", "YouTube"),
-                filename_format=env.str("FILENAME_FORMAT", "%(title)s.%(ext)s"),
-                useragent=env.str("USERAGENT", ""),
+                download_directory=env.str("DOWNLOAD_DIRECTORY") or "YouTube",
+                filename_format=env.str("FILENAME_FORMAT") or "%(title)s.%(ext)s",
+                useragent=env.str("USERAGENT") or "",
             ),
             extended=Extended(
                 debug_mode=env.bool("DEBUG_MODE", False),
@@ -81,5 +83,4 @@ def get_config(env_file: str = ".env") -> Config:
     :param env_file: (str) Путь до файла ".env", необязательный параметр.
     :return: (Config)
     """
-
     return ConfigManager.load_config(env_file)

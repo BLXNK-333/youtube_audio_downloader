@@ -8,18 +8,23 @@ from PIL.Image import Resampling
 from io import BytesIO
 
 from .config.app_config import get_config
+from .entities import AudioExt
 
 
 class Convertor:
     _codec_map = {
         "ogg": ("copy", "libtheora"),
+        "webm": ("copy", "libtheora"),
         "m4a": ("copy", "mjpeg"),
+        "ogg_convert": ("libvorbis", "libtheora"),
+        "m4a_convert": ("aac", "mjpeg"),
         "mp3": ("libmp3lame", "mjpeg"),
     }
 
     def __init__(self):
         self._config = get_config()
         self._logger = logging.getLogger()
+        self._yt_dlp_logger = logging.getLogger('yt-dlp')
         self._audio_ext = self._config.download.audio_ext
         self._resize = self._config.download.thumbnail_resize
         self._max_width = self._config.download.thumbnail_max_width
@@ -45,14 +50,21 @@ class Convertor:
 
         if process.returncode != 0:
             error_message = stderr.decode()
-            self._logger.error(
+            self._yt_dlp_logger.error(
                 f"FFmpeg command failed with return code {process.returncode}: {error_message}")
             return None, error_message  # Или другой способ обработки ошибки
-
+        else:
+            self._yt_dlp_logger.info(f"[convertor] Audio has been saved: {cmd[-1]}")
         return stdout, stderr
 
-    def _convert_with_thumbnail(self, audio_path: str, cover_path: str, output_file: str):
-        audio_codec, image_codec = Convertor._codec_map[self._audio_ext]
+    def _convert_with_thumbnail(
+        self,
+        audio_path: str,
+        cover_path: str,
+        output_file: str,
+        scheme: str
+    ):
+        audio_codec, image_codec = Convertor._codec_map[scheme]
 
         cover_data = self._convert_image(cover_path)
         cmd = [
@@ -69,8 +81,8 @@ class Convertor:
 
         self._execute_ffmpeg(cmd, cover_data.read())
 
-    def _convert_without_thumbnail(self, audio_path: str, output_file: str):
-        audio_codec, image_codec = Convertor._codec_map[self._audio_ext]
+    def _convert_without_thumbnail(self, audio_path: str, output_file: str, scheme: str):
+        audio_codec, image_codec = Convertor._codec_map[scheme]
 
         cmd = [
             "ffmpeg",
@@ -93,10 +105,30 @@ class Convertor:
 
         out_filename, ext = os.path.splitext(os.path.basename(audio_path))
         parent_dir = os.path.dirname(os.path.dirname(audio_path))
-        out_filepath = os.path.join(parent_dir, f"{out_filename}.{self._audio_ext}")
+        out_filepath = os.path.join(parent_dir, out_filename)
+
+        strip_ext = ext.lstrip(".")
+        scheme = strip_ext
+
+        if self._audio_ext == AudioExt.BEST_:
+            if strip_ext == AudioExt.WEBM:
+                scheme = AudioExt.OGG
+                out_filepath += f".{AudioExt.OGG}"
+            else:
+                out_filepath += ext
+        elif self._audio_ext == AudioExt.OGG and strip_ext == AudioExt.M4A:
+            scheme = "ogg_convert"
+            out_filepath += f".{AudioExt.M4A}"
+        elif self._audio_ext == AudioExt.M4A and strip_ext == AudioExt.WEBM:
+            scheme = "m4a_convert"
+            out_filepath += f".{AudioExt.M4A}"
+        elif self._audio_ext == AudioExt.MP3:
+            scheme = AudioExt.MP3
+            out_filepath += f".{AudioExt.MP3}"
+        else:
+            out_filepath += ext  # Default to the original extension
 
         if cover_path:
-            self._convert_with_thumbnail(audio_path, cover_path, out_filepath)
+            self._convert_with_thumbnail(audio_path, cover_path, out_filepath, scheme)
         else:
-            self._convert_without_thumbnail(audio_path, out_filepath)
-
+            self._convert_without_thumbnail(audio_path, out_filepath, scheme)

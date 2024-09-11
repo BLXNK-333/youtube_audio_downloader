@@ -6,18 +6,22 @@ import logging
 
 from yt_dlp import YoutubeDL
 
-from src.config.app_config import get_config
-from src.convertor import Convertor
-from src.utils import remove_empty_files
+from .config.app_config import get_config
+from .convertor import Convertor
+from .utils import remove_empty_files
+from .entities import AudioExt
+
+
+def read_user_agents(filepath="user_agents.txt"):
+    try:
+        with open(filepath, encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        print(f"File '{filepath}' not found.")
+        return []
 
 
 class Downloader:
-    _quality_codes = {
-        "ogg": "251",
-        "m4a": "140",
-        "mp3": "251"
-    }
-
     def __init__(self, convertor: Convertor):
         self._config = get_config()
         self._convertor = convertor
@@ -26,7 +30,6 @@ class Downloader:
 
         self._write_thumbnail = self._config.download.write_thumbnail
         self._write_metadata = self._config.download.write_metadata
-        self._audio_ext = self._config.download.audio_ext
         self._useragent = self._config.download.useragent
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
@@ -41,13 +44,12 @@ class Downloader:
         :return: Словарь с опциями.
         """
         return {
-            'format': Downloader._quality_codes[self._audio_ext],
+            'format': AudioExt.BEST_,
             'outtmpl': os.path.join(save_path, 'tmp', self._filename_format),
             'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
             'writemetadata': self._write_metadata,  # Загружаем метаданные
             'progress_hooks': [self._download_complete_hook],  # Хук для обработки
-            'headers': {'User-Agent': self._useragent},
-            'logger': self._yt_dlp_logger
+            'headers': {'User-Agent': self._useragent}
         }
 
     def _download_complete_hook(self, d) -> None:
@@ -72,10 +74,10 @@ class Downloader:
         return YoutubeDL(ydl_options)
 
     def download_links(
-        self,
-        urls: List[str],
-        playlist_name: Optional[str] = None,
-        playlist_length: int = 1
+            self,
+            urls: List[str],
+            playlist_name: Optional[str] = None,
+            playlist_length: int = 1
     ) -> None:
         """
         Скачивает аудио по списку из urls и сохраняет в каталоге save_path.
@@ -94,8 +96,10 @@ class Downloader:
 
         try:
             with self._create_ydl(save_path) as ydl:
+                _bot_block_cnt = 0
                 for url in urls:
-                    print()  # Так надо
+                    print()  # Отступ для читаемости лога
+                    _bot_block_cnt = 0
                     try:
                         counter += 1
                         self._logger.info(f"Loading... [{counter}/{playlist_length}]")
@@ -112,7 +116,9 @@ class Downloader:
                                 break
                             except Exception as e:
                                 self._yt_dlp_logger.warning(
-                                    f"Attempt {attempt + 1}/3 failed for {url}: {e}")
+                                    f"[downloader] Attempt {attempt + 1}/3 failed for {url}")
+                                if "Sign in to confirm you’re not a bot" in str(e):
+                                    _bot_block_cnt += 1
                                 time.sleep(1)
                                 if attempt == 2:
                                     raise e
@@ -121,7 +127,11 @@ class Downloader:
 
                     except Exception as e:
                         counter -= 1
-                        self._logger.warning(f"Error loading {url}: {e}")
+                        self._logger.error(f"Error loading {url}: \n{e}")
+                        if _bot_block_cnt == 3:
+                            self._logger.error(
+                                "Your IP is in the bot block, use a cleaner VPN or proxy")
+                            break
         except KeyboardInterrupt:
             self._logger.info("Download was interrupted by the user.")
         finally:
@@ -154,15 +164,5 @@ if __name__ == '__main__':
     # DL.download_links(URLS)
 
     # Todo:
-    #  Не для всех файлов доступно 2 формата аудио 140, 251. Иногда доступен только 1
-    #  формат. Очевидно что в логику должен передаваться что то вроде {'format': 'best/bestaudio'},
-    #  чтобы он сам выбирал лучший формат. Соответственно остальную логику, надо написать,
-    #  как обрабатывать эти случаи. Тут по сути 2 пути: 1. Оставлять в таком же формате.
-    #  2. Переконвертировать в нужный формат. Изменения затронут 2 модуля, этот и
-    #  convertor.py. Нужно написать эту логику и потестить.
-    #  Примеры таких видео:
-    #  [
-    #     "https://www.youtube.com/watch?v=3pHjAlpLmB4",
-    #     "https://www.youtube.com/watch?v=yovw3SkIcjc",
-    #     "https://www.youtube.com/watch?v=TsDf4sNVY9c"
-    #  ]
+    #  При скачивании, через некоторое время попадает в бот блок, понять в чем причина,
+    #  и попытаться, обойти, Возможно причина в юзерагенте. Да хз в чем.
