@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Tuple, Optional
 import os
 import shutil
 import logging
+import random
 
 from yt_dlp import YoutubeDL
 
@@ -34,9 +35,10 @@ class Downloader:
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
 
+        self._user_agents = read_user_agents()
         self._hook_callback: Tuple[Optional[str], Optional[str]] = (None, None)
 
-    def _get_ydl_options(self, save_path: str) -> Dict[str, Any]:
+    def _get_ydl_options(self, save_path: str, useragent: str) -> Dict[str, Any]:
         """
         Генерирует словарь с опциями для скачивания.
 
@@ -49,7 +51,7 @@ class Downloader:
             'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
             'writemetadata': self._write_metadata,  # Загружаем метаданные
             'progress_hooks': [self._download_complete_hook],  # Хук для обработки
-            'headers': {'User-Agent': self._useragent}
+            'headers': {'User-Agent': useragent}
         }
 
     def _download_complete_hook(self, d) -> None:
@@ -68,10 +70,6 @@ class Downloader:
                     thumbnail_path = d['info_dict']['thumbnails'][-1].get('filepath')
 
             self._hook_callback = audio_path, thumbnail_path
-
-    def _create_ydl(self, save_path: str) -> YoutubeDL:
-        ydl_options = self._get_ydl_options(save_path)
-        return YoutubeDL(ydl_options)
 
     def download_links(
             self,
@@ -95,43 +93,53 @@ class Downloader:
             save_path = os.path.join(save_path, playlist_name)
 
         try:
-            with self._create_ydl(save_path) as ydl:
+            _bot_block_cnt = 0
+            for url in urls:
+                print()  # Отступ для читаемости лога
                 _bot_block_cnt = 0
-                for url in urls:
-                    print()  # Отступ для читаемости лога
-                    _bot_block_cnt = 0
-                    try:
-                        counter += 1
-                        self._logger.info(f"Loading... [{counter}/{playlist_length}]")
-                        for attempt in range(3):
-                            try:
+                try:
+                    counter += 1
+                    self._logger.info(f"Loading... [{counter}/{playlist_length}]")
+
+                    for attempt in range(3):
+                        # Подменяем User-Agent на каждой итерации
+                        user_agent = random.choice(self._user_agents)
+                        ydl_opts = self._get_ydl_options(save_path, user_agent)
+
+                        try:
+                            with YoutubeDL(ydl_opts) as ydl:
                                 ydl.download([url])
-                                audio_path, thumbnail_path = self._hook_callback
-                                self._convertor.convert(audio_path, thumbnail_path)
 
-                                if audio_path:
-                                    os.remove(audio_path)
-                                if thumbnail_path:
-                                    os.remove(thumbnail_path)
-                                break
-                            except Exception as e:
-                                self._yt_dlp_logger.warning(
-                                    f"[downloader] Attempt {attempt + 1}/3 failed for {url}")
-                                if "Sign in to confirm you’re not a bot" in str(e):
-                                    _bot_block_cnt += 1
-                                time.sleep(1)
-                                if attempt == 2:
-                                    raise e
-                            finally:
-                                time.sleep(1)
+                            audio_path, thumbnail_path = self._hook_callback
+                            self._convertor.convert(audio_path, thumbnail_path)
 
-                    except Exception as e:
-                        counter -= 1
-                        self._logger.error(f"Error loading {url}: \n{e}")
-                        if _bot_block_cnt == 3:
-                            self._logger.error(
-                                "Your IP is in the bot block, use a cleaner VPN or proxy")
-                            break
+                            if audio_path:
+                                os.remove(audio_path)
+                            if thumbnail_path:
+                                os.remove(thumbnail_path)
+                            break  # Выход из попыток после успешной загрузки
+
+                        except Exception as e:
+                            self._yt_dlp_logger.warning(
+                                f"[downloader] Attempt {attempt + 1}/3 failed for {url}")
+                            if "Sign in to confirm you’re not a bot" in str(e):
+                                _bot_block_cnt += 1
+                            time.sleep(1)  # Ожидание перед следующей попыткой
+
+                            if attempt == 2:
+                                raise e
+                        finally:
+                            time.sleep(1)
+
+                except Exception as e:
+                    counter -= 1
+                    self._logger.error(f"Error loading {url}: \n{e}")
+                    if _bot_block_cnt == 3:
+                        self._logger.error(
+                            "Your IP is in the bot block, try later or use a "
+                            "cleaner VPN or proxy")
+                        break  # Прерывание загрузки после блокировки бота
+
         except KeyboardInterrupt:
             self._logger.info("Download was interrupted by the user.")
         finally:
@@ -164,5 +172,14 @@ if __name__ == '__main__':
     # DL.download_links(URLS)
 
     # Todo:
-    #  При скачивании, через некоторое время попадает в бот блок, понять в чем причина,
-    #  и попытаться, обойти, Возможно причина в юзерагенте. Да хз в чем.
+    #  1. При скачивании, через некоторое время попадает в бот блок, понять в чем причина,
+    #   и попытаться, обойти, Возможно причина в юзерагенте. Да хз в чем. Нужно сделать
+    #   тайминги перед заргузками не менее 35 сек, на итерацию.
+    #  2. Разбить логику download_links, на несколько функций.
+    #  3. Вынести обработку ошибки KeyboardInterrupt в модуль выше, соответствкнно
+    #   логику которая обрабатывалась под ней вынести в отдельную функцию, вроде
+    #   free_up_resources()
+    #  4. Возможно сделать доп список из ссылок, на нескачанные, и если бот блок не
+    #   сработал после докачать их. Возможно, но не точно, стоит использовать логику
+    #   бесконечного итератора.
+    #  5. Потестить, понять при каких параметрах, работает стабильно.
