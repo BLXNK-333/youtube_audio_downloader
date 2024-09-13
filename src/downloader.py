@@ -9,17 +9,12 @@ from yt_dlp import YoutubeDL
 
 from .config.app_config import get_config
 from .convertor import Convertor
-from .utils import remove_empty_files
 from .entities import AudioExt
-
-
-def read_user_agents(filepath="user_agents.txt"):
-    try:
-        with open(filepath, encoding="utf-8") as f:
-            return [line.strip() for line in f if line.strip()]
-    except FileNotFoundError:
-        print(f"File '{filepath}' not found.")
-        return []
+from .utils import (
+    remove_empty_files,
+    countdown_timer,
+    read_user_agents
+)
 
 
 class Downloader:
@@ -35,6 +30,7 @@ class Downloader:
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
 
+        self._delay_between_downloads = 30
         self._user_agents = read_user_agents()
         self._hook_callback: Tuple[Optional[str], Optional[str]] = (None, None)
 
@@ -71,6 +67,26 @@ class Downloader:
 
             self._hook_callback = audio_path, thumbnail_path
 
+    def _download_attempt(self, url: str, save_path: str) -> bool:
+        user_agent = random.choice(self._user_agents)
+        ydl_opts = self._get_ydl_options(save_path, user_agent)
+
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            audio_path, thumbnail_path = self._hook_callback
+            self._convertor.convert(audio_path, thumbnail_path)
+
+            # if audio_path:
+            #     os.remove(audio_path)
+            # if thumbnail_path:
+            #     os.remove(thumbnail_path)
+            return True
+
+        except Exception:
+            return False
+
     def download_links(
             self,
             urls: List[str],
@@ -87,65 +103,44 @@ class Downloader:
             после фильтра), параметр нужен для логирования.
         :return: None
         """
-        counter = playlist_length - len(urls)
+        download_counter = playlist_length - len(urls)
         save_path = self._download_directory
         if playlist_name:
             save_path = os.path.join(save_path, playlist_name)
 
         try:
             _bot_block_cnt = 0
-            for url in urls:
+            while urls:
                 print()  # Отступ для читаемости лога
-                _bot_block_cnt = 0
-                try:
-                    counter += 1
-                    self._logger.info(f"Loading... [{counter}/{playlist_length}]")
+                start = time.time()
 
-                    for attempt in range(3):
-                        # Подменяем User-Agent на каждой итерации
-                        user_agent = random.choice(self._user_agents)
-                        ydl_opts = self._get_ydl_options(save_path, user_agent)
+                url = next(iter(urls))
+                download_counter += 1
+                self._logger.info(f"Loading... [{download_counter}/{playlist_length}]")
 
-                        try:
-                            with YoutubeDL(ydl_opts) as ydl:
-                                ydl.download([url])
+                download_result = self._download_attempt(url, save_path)
+                if not download_result:
+                    _bot_block_cnt += 1
+                    download_counter -= 1
+                else:
+                    _bot_block_cnt = 0
+                    urls.remove(url)
 
-                            audio_path, thumbnail_path = self._hook_callback
-                            self._convertor.convert(audio_path, thumbnail_path)
+                if _bot_block_cnt == 3:
+                    print()
+                    self._logger.error(
+                        "Your IP is in the bot block, try later or use a "
+                        "cleaner VPN or proxy")
+                    break  # Прерывание загрузки после блокировки бота
 
-                            if audio_path:
-                                os.remove(audio_path)
-                            if thumbnail_path:
-                                os.remove(thumbnail_path)
-                            break  # Выход из попыток после успешной загрузки
+                delay = self._delay_between_downloads - (time.time() - start)
+                if urls and delay > 0:
+                    countdown_timer(delay)
 
-                        except Exception as e:
-                            self._yt_dlp_logger.warning(
-                                f"[downloader] Attempt {attempt + 1}/3 failed for {url}")
-                            if "Sign in to confirm you’re not a bot" in str(e):
-                                _bot_block_cnt += 1
-                            time.sleep(1)  # Ожидание перед следующей попыткой
-
-                            if attempt == 2:
-                                raise e
-                        finally:
-                            time.sleep(1)
-
-                except Exception as e:
-                    counter -= 1
-                    self._logger.error(f"Error loading {url}: \n{e}")
-                    if _bot_block_cnt == 3:
-                        self._logger.error(
-                            "Your IP is in the bot block, try later or use a "
-                            "cleaner VPN or proxy")
-                        break  # Прерывание загрузки после блокировки бота
-
-        except KeyboardInterrupt:
-            self._logger.info("Download was interrupted by the user.")
         finally:
             tmp_path = os.path.join(save_path, "tmp")
-            if os.path.exists(tmp_path):
-                shutil.rmtree(tmp_path)
+            # if os.path.exists(tmp_path):
+            #     shutil.rmtree(tmp_path)
             remove_empty_files(save_path)
 
     def list_available_formats(self, video_url: str) -> None:

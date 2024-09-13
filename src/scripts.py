@@ -21,42 +21,46 @@ def download_audio(link: str):
     :param link: Ссылка на видео или плейлист.
     :return: None
     """
-    config = get_config()
-    link, link_id = extract_type_and_id(link)
+    try:
+        config = get_config()
+        link, link_id = extract_type_and_id(link)
 
-    if not validate_audio_format(config.download.audio_ext):
-        return
+        if not validate_audio_format(config.download.audio_ext):
+            return
 
-    if not validate_date_filter(config.extended.filter_date):
-        return
+        if not validate_date_filter(config.extended.filter_date):
+            return
 
-    query = ApiQuery()
-    _filter = Filter()
-    convertor = Convertor()
-    DL = Downloader(convertor=convertor)
+        query = ApiQuery()
+        _filter = Filter()
+        convertor = Convertor()
+        DL = Downloader(convertor=convertor)
 
-    if link == YoutubeLink.VIDEO:
-        # Скрипт для скачивания аудио из ссылки на видео.
-        snippets = query.get_video_details(link_id)
-        filtered_snippets, len_snippets = _filter.apply_filters(
-            snippets,
-            filter_date=False
-        )
-        DL.download_links(filtered_snippets)
+        if link == YoutubeLink.VIDEO:
+            # Скрипт для скачивания аудио из ссылки на видео.
+            snippets = query.get_video_details(link_id)
+            filtered_snippets, len_snippets = _filter.apply_filters(
+                snippets,
+                filter_date=False
+            )
+            DL.download_links(filtered_snippets)
 
-    elif link == YoutubeLink.PLAYLIST:
-        # Скрипт для скачивания аудио из ссылки на плейлист.
-        playlist_name = query.get_playlist_title(link_id)
-        snippets = query.get_playlist_videos_details(link_id)
-        filtered_snippets, len_snippets = _filter.apply_filters(
-            snippets,
-            playlist_name=playlist_name
-        )
-        DL.download_links(
-            urls=filtered_snippets,
-            playlist_name=playlist_name,
-            playlist_length=len_snippets
-        )
+        elif link == YoutubeLink.PLAYLIST:
+            # Скрипт для скачивания аудио из ссылки на плейлист.
+            playlist_name = query.get_playlist_title(link_id)
+            snippets = query.get_playlist_videos_details(link_id)
+            filtered_snippets, len_snippets = _filter.apply_filters(
+                snippets,
+                playlist_name=playlist_name
+            )
+            DL.download_links(
+                urls=filtered_snippets,
+                playlist_name=playlist_name,
+                playlist_length=len_snippets
+            )
 
-    else:
-        logger.warning(f"Bad link: {link}")
+        else:
+            logger.warning(f"Bad link: {link}")
+
+    except KeyboardInterrupt:
+        logger.info("Download was interrupted by the user.")

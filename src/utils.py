@@ -1,4 +1,6 @@
 import os
+import sys
+import time
 import re
 from typing import Tuple
 
@@ -39,3 +41,35 @@ def remove_empty_files(directory: str) -> None:
             file_path = os.path.join(root, file_name)
             if os.path.getsize(file_path) == 0:
                 os.remove(file_path)
+
+
+def countdown_timer(delay: float) -> None:
+    """
+    Displays a countdown timer in stdout, updating in the same line.
+
+    :param delay: Waiting time in seconds.
+    :return: None
+    """
+    try:
+        interval = 0.1  # Update interval in seconds
+        steps = int(delay / interval)
+
+        for remaining in range(steps, 0, -1):
+            time_left = remaining * interval
+            sys.stdout.write(f"\rNext download in {time_left:.1f} seconds...")
+            sys.stdout.flush()
+            time.sleep(interval)
+
+    finally:
+        # Clear the timer after completion
+        sys.stdout.write("\r" + " " * 50 + "\r")
+        sys.stdout.flush()
+
+
+def read_user_agents(filepath="user_agents.txt"):
+    try:
+        with open(filepath, encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        print(f"File '{filepath}' not found.")
+        return []
