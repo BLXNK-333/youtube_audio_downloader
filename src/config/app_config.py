@@ -21,7 +21,6 @@ class Download:
     thumbnail_max_width: int
     download_directory: str
     filename_format: str
-    useragent: str
 
 
 @dataclass
@@ -55,8 +54,7 @@ class ConfigManager:
                 thumbnail_resize=env.bool("THUMBNAIL_RESIZE", False),
                 thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
                 download_directory=env.str("DOWNLOAD_DIRECTORY") or "YouTube",
-                filename_format=env.str("FILENAME_FORMAT") or "%(title)s.%(ext)s",
-                useragent=env.str("USERAGENT") or "",
+                filename_format=env.str("FILENAME_FORMAT") or "%(title)s.%(ext)s"
             ),
             extended=Extended(
                 debug_mode=env.bool("DEBUG_MODE", False),

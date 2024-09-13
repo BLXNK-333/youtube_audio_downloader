@@ -30,7 +30,6 @@ class Downloader:
 
         self._write_thumbnail = self._config.download.write_thumbnail
         self._write_metadata = self._config.download.write_metadata
-        self._useragent = self._config.download.useragent
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
 
@@ -151,7 +150,7 @@ class Downloader:
                         "cleaner VPN or proxy")
                     break  # Прерывание загрузки после блокировки бота
 
-                rand = round(random.uniform(0, 2), 1)
+                rand = round(random.uniform(0, 3), 1)
                 delay = self._delay_between_downloads + rand - (time.time() - start)
                 if urls and delay > 0:
                     countdown_timer(delay)
@@ -184,16 +183,3 @@ if __name__ == '__main__':
     DL = Downloader(convertor=conv)
     DL.list_available_formats("https://www.youtube.com/watch?v=3pHjAlpLmB4")
     # DL.download_links(URLS)
-
-    # Todo:
-    #  1. При скачивании, через некоторое время попадает в бот блок, понять в чем причина,
-    #   и попытаться, обойти, Возможно причина в юзерагенте. Да хз в чем. Нужно сделать
-    #   тайминги перед заргузками не менее 35 сек, на итерацию.
-    #  2. Разбить логику download_links, на несколько функций.
-    #  3. Вынести обработку ошибки KeyboardInterrupt в модуль выше, соответствкнно
-    #   логику которая обрабатывалась под ней вынести в отдельную функцию, вроде
-    #   free_up_resources()
-    #  4. Возможно сделать доп список из ссылок, на нескачанные, и если бот блок не
-    #   сработал после докачать их. Возможно, но не точно, стоит использовать логику
-    #   бесконечного итератора.
-    #  5. Потестить, понять при каких параметрах, работает стабильно.
