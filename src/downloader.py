@@ -1,3 +1,4 @@
+import pprint
 import time
 from typing import Dict, Any, List, Tuple, Optional
 import os
@@ -9,7 +10,10 @@ from yt_dlp import YoutubeDL
 
 from .config.app_config import get_config
 from .convertor import Convertor
-from .entities import AudioExt
+from .entities import (
+    AudioExt,
+    Metadata
+)
 from .utils import (
     remove_empty_files,
     countdown_timer,
@@ -30,9 +34,10 @@ class Downloader:
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
 
-        self._delay_between_downloads = 30
+        self._delay_between_downloads = 20
         self._user_agents = read_user_agents()
-        self._hook_callback: Tuple[Optional[str], Optional[str]] = (None, None)
+        self._hook_callback: Tuple[Optional[str], Optional[str],
+                            Optional[Metadata]] = (None, None, None)
 
     def _get_ydl_options(self, save_path: str, useragent: str) -> Dict[str, Any]:
         """
@@ -47,7 +52,7 @@ class Downloader:
             'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
             'writemetadata': self._write_metadata,  # Загружаем метаданные
             'progress_hooks': [self._download_complete_hook],  # Хук для обработки
-            'headers': {'User-Agent': useragent}
+            'headers': {'User-Agent': useragent},
         }
 
     def _download_complete_hook(self, d) -> None:
@@ -58,6 +63,7 @@ class Downloader:
         if d['status'] == 'finished':
             audio_path = d['filename']
             thumbnail_path = None
+            metadata = None
 
             # Получаем информацию о миниатюре
             if self._write_thumbnail:
@@ -65,7 +71,19 @@ class Downloader:
                 if thumbnail_info:
                     thumbnail_path = d['info_dict']['thumbnails'][-1].get('filepath')
 
-            self._hook_callback = audio_path, thumbnail_path
+            if self._write_metadata:
+                info_dict = d['info_dict']
+
+                # Формируем словарь с нужными метаданными
+                metadata = Metadata(
+                    title=info_dict.get('title'),
+                    artist=info_dict.get('uploader'),  # Название канала как артист
+                    album=info_dict.get('album', 'Unknown'),  # Альбом, если доступен
+                    date=info_dict.get('release_year', 'Unknown'),  # Год, если доступен
+                    comment=info_dict.get('webpage_url')  # Ссылка на видео
+                )
+
+            self._hook_callback = audio_path, thumbnail_path, metadata
 
     def _download_attempt(self, url: str, save_path: str) -> bool:
         user_agent = random.choice(self._user_agents)
@@ -75,8 +93,8 @@ class Downloader:
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
 
-            audio_path, thumbnail_path = self._hook_callback
-            self._convertor.convert(audio_path, thumbnail_path)
+            audio_path, thumbnail_path, metadata = self._hook_callback
+            self._convertor.convert(audio_path, thumbnail_path, metadata)
 
             if audio_path:
                 os.remove(audio_path)

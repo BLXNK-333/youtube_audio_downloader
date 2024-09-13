@@ -21,3 +21,12 @@ class Snippet:
     title: str
     url: str
     published: str
+
+
+@dataclass
+class Metadata:
+    title: str
+    artist: str
+    album: str
+    date: str
+    comment: str
