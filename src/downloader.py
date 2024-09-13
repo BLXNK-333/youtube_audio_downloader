@@ -78,10 +78,10 @@ class Downloader:
             audio_path, thumbnail_path = self._hook_callback
             self._convertor.convert(audio_path, thumbnail_path)
 
-            # if audio_path:
-            #     os.remove(audio_path)
-            # if thumbnail_path:
-            #     os.remove(thumbnail_path)
+            if audio_path:
+                os.remove(audio_path)
+            if thumbnail_path:
+                os.remove(thumbnail_path)
             return True
 
         except Exception:
@@ -139,8 +139,8 @@ class Downloader:
 
         finally:
             tmp_path = os.path.join(save_path, "tmp")
-            # if os.path.exists(tmp_path):
-            #     shutil.rmtree(tmp_path)
+            if os.path.exists(tmp_path):
+                shutil.rmtree(tmp_path)
             remove_empty_files(save_path)
 
     def list_available_formats(self, video_url: str) -> None:

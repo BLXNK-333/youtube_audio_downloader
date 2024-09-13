@@ -13,10 +13,10 @@ from .entities import AudioExt
 
 class Convertor:
     _codec_map = {
-        "ogg": ("copy", "libtheora"),
+        "opus": ("copy", "libtheora"),
         "webm": ("copy", "libtheora"),
         "m4a": ("copy", "mjpeg"),
-        "ogg_convert": ("libvorbis", "libtheora"),
+        "opus_convert": ("libopus", "libtheora"),
         "m4a_convert": ("aac", "mjpeg"),
         "mp3": ("libmp3lame", "mjpeg"),
     }
@@ -112,11 +112,11 @@ class Convertor:
 
         if self._audio_ext == AudioExt.BEST_:
             if strip_ext == AudioExt.WEBM:
-                scheme = AudioExt.OGG
-                out_filepath += f".{AudioExt.OGG}"
+                scheme = AudioExt.OPUS
+                out_filepath += f".{AudioExt.OPUS}"
             else:
                 out_filepath += ext
-        elif self._audio_ext == AudioExt.OGG and strip_ext == AudioExt.M4A:
+        elif self._audio_ext == AudioExt.OPUS and strip_ext == AudioExt.M4A:
             scheme = "ogg_convert"
             out_filepath += f".{AudioExt.M4A}"
         elif self._audio_ext == AudioExt.M4A and strip_ext == AudioExt.WEBM:

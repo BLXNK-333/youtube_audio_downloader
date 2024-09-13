@@ -15,7 +15,7 @@ def validate_audio_format(output_format: str) -> bool:
     :return: (bool) True, если поддерживается, иначе False.
     """
 
-    supported_formats = {AudioExt.OGG, AudioExt.M4A, AudioExt.MP3, AudioExt.BEST_}
+    supported_formats = {AudioExt.OPUS, AudioExt.M4A, AudioExt.MP3, AudioExt.BEST_}
     if output_format not in supported_formats:
         logger.error(
             f"\n End audio container not supported: {output_format}\n"

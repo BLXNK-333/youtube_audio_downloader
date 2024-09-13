@@ -9,7 +9,7 @@ class YoutubeLink(StrEnum):
 
 
 class AudioExt(StrEnum):
-    OGG = "ogg"
+    OPUS = "opus"
     MP3 = "mp3"
     M4A = "m4a"
     WEBM = "webm"
