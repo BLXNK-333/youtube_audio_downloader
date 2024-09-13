@@ -34,7 +34,7 @@ class Downloader:
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
 
-        self._delay_between_downloads = 20
+        self._delay_between_downloads = 13
         self._user_agents = read_user_agents()
         self._hook_callback: Tuple[Optional[str], Optional[str],
                             Optional[Metadata]] = (None, None, None)
@@ -151,7 +151,8 @@ class Downloader:
                         "cleaner VPN or proxy")
                     break  # Прерывание загрузки после блокировки бота
 
-                delay = self._delay_between_downloads - (time.time() - start)
+                rand = round(random.uniform(0, 2), 1)
+                delay = self._delay_between_downloads + rand - (time.time() - start)
                 if urls and delay > 0:
                     countdown_timer(delay)
 
