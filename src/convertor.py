@@ -8,7 +8,7 @@ from PIL.Image import Resampling
 from io import BytesIO
 
 from .config.app_config import get_config
-from .entities import AudioExt, Metadata
+from .entities import AudioExt
 
 
 class Convertor:
@@ -39,15 +39,6 @@ class Convertor:
             img_byte_arr.seek(0)
             return img_byte_arr
 
-    def _unpack_metadata(self, metadata: Metadata) -> List[str]:
-        return [
-            '-metadata', f'title={metadata.title}',
-            '-metadata', f'artist={metadata.artist}',
-            '-metadata', f'album={metadata.album}',
-            '-metadata', f'date={metadata.date}',
-            '-metadata', f'comment={metadata.comment}'
-        ]
-
     def _execute_ffmpeg(self, cmd: list, input_data: bytes = None):
         process = subprocess.Popen(
             cmd,
@@ -71,7 +62,6 @@ class Convertor:
         audio_path: str,
         cover_path: str,
         output_file: str,
-        metadata: Optional[Metadata],
         scheme: str
     ) -> None:
         audio_codec, image_codec = Convertor._codec_map[scheme]
@@ -85,21 +75,18 @@ class Convertor:
             "-map", "1:v",
             "-c:a", audio_codec,
             "-c:v", image_codec,
-            "-disposition:v:0", "attached_pic"
+            # '-metadata:s:a', 'title="Album cover"',
+            # '-metadata:s:a', 'comment="Cover (front)"',
+            "-disposition:v:0", "attached_pic",
+            output_file
         ]
 
-        if metadata:
-            cmd += self._unpack_metadata(metadata)
-
-        # Путь к выходному файлу
-        cmd.append(output_file)
         self._execute_ffmpeg(cmd, cover_data.read())
 
     def _convert_without_thumbnail(
         self,
         audio_path: str,
         output_file: str,
-        metadata: Optional[Metadata],
         scheme: str
     ) -> None:
         audio_codec, image_codec = Convertor._codec_map[scheme]
@@ -107,20 +94,16 @@ class Convertor:
         cmd = [
             "ffmpeg",
             "-i", audio_path,
-            "-c:a", audio_codec
+            "-c:a", audio_codec,
+            output_file
         ]
 
-        if metadata:
-            cmd += self._unpack_metadata(metadata)
-
-        cmd.append(output_file)
         self._execute_ffmpeg(cmd)
 
     def convert(
         self,
         audio_path: str,
         cover_path: Optional[str],
-        metadata: Optional[Metadata]
     ) -> None:
         """
         Сохраняет конвертированный файл на 1 каталог выше, предполагается
@@ -128,7 +111,6 @@ class Convertor:
 
         :param audio_path: (str) Путь к аудио файлу.
         :param cover_path: (Optional[str]) Путь к миниатюре или None.
-        :param metadata: (Optional[Metadata]) Dataclass с метаданными.
         :return: (None)
         """
 
@@ -158,7 +140,6 @@ class Convertor:
             out_filepath += ext  # Default to the original extension
 
         if cover_path:
-            self._convert_with_thumbnail(audio_path, cover_path, out_filepath,
-                                         metadata, scheme)
+            self._convert_with_thumbnail(audio_path, cover_path, out_filepath, scheme)
         else:
-            self._convert_without_thumbnail(audio_path, out_filepath, metadata, scheme)
+            self._convert_without_thumbnail(audio_path, out_filepath, scheme)

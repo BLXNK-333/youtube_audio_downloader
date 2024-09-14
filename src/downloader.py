@@ -10,10 +10,7 @@ from yt_dlp import YoutubeDL
 
 from .config.app_config import get_config
 from .convertor import Convertor
-from .entities import (
-    AudioExt,
-    Metadata
-)
+from .entities import AudioExt
 from .utils import (
     remove_empty_files,
     countdown_timer,
@@ -35,8 +32,7 @@ class Downloader:
 
         self._delay_between_downloads = 13
         self._user_agents = read_user_agents()
-        self._hook_callback: Tuple[Optional[str], Optional[str],
-                            Optional[Metadata]] = (None, None, None)
+        self._hook_callback: Tuple[Optional[str], Optional[str]] = (None, None)
 
     def _get_ydl_options(self, save_path: str, useragent: str) -> Dict[str, Any]:
         """
@@ -45,14 +41,23 @@ class Downloader:
         :param save_path: Путь для сохранения скачанных файлов.
         :return: Словарь с опциями.
         """
-        return {
+        options = {
             'format': AudioExt.BEST_,
             'outtmpl': os.path.join(save_path, 'tmp', self._filename_format),
-            'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
-            'writemetadata': self._write_metadata,  # Загружаем метаданные
             'progress_hooks': [self._download_complete_hook],  # Хук для обработки
             'headers': {'User-Agent': useragent},
+            'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',  # Извлекаем аудио
+                }],
+            'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
+            'addmetadata': self._write_metadata,  # Загружаем метаданные
         }
+
+        if self._write_metadata:
+            options['postprocessors'].append({
+                'key': 'FFmpegMetadata',  # Добавляем метаданные
+            })
+        return options
 
     def _download_complete_hook(self, d) -> None:
         """
@@ -62,7 +67,9 @@ class Downloader:
         if d['status'] == 'finished':
             audio_path = d['filename']
             thumbnail_path = None
-            metadata = None
+
+            format_id = d['info_dict']['format_id']
+            format_dict = {'251': 'opus', '140': 'm4a'}
 
             # Получаем информацию о миниатюре
             if self._write_thumbnail:
@@ -70,19 +77,8 @@ class Downloader:
                 if thumbnail_info:
                     thumbnail_path = d['info_dict']['thumbnails'][-1].get('filepath')
 
-            if self._write_metadata:
-                info_dict = d['info_dict']
-
-                # Формируем словарь с нужными метаданными
-                metadata = Metadata(
-                    title=info_dict.get('title'),
-                    artist=info_dict.get('uploader'),  # Название канала как артист
-                    album=info_dict.get('album', 'Unknown'),  # Альбом, если доступен
-                    date=info_dict.get('release_year', 'Unknown'),  # Год, если доступен
-                    comment=info_dict.get('webpage_url')  # Ссылка на видео
-                )
-
-            self._hook_callback = audio_path, thumbnail_path, metadata
+            audio_path = os.path.splitext(audio_path)[0] + "." + format_dict[format_id]
+            self._hook_callback = audio_path, thumbnail_path
 
     def _download_attempt(self, url: str, save_path: str) -> bool:
         user_agent = random.choice(self._user_agents)
@@ -92,8 +88,8 @@ class Downloader:
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
 
-            audio_path, thumbnail_path, metadata = self._hook_callback
-            self._convertor.convert(audio_path, thumbnail_path, metadata)
+            audio_path, thumbnail_path = self._hook_callback
+            self._convertor.convert(audio_path, thumbnail_path)
 
             if audio_path:
                 os.remove(audio_path)
@@ -101,7 +97,8 @@ class Downloader:
                 os.remove(thumbnail_path)
             return True
 
-        except Exception:
+        except Exception as e:
+            self._yt_dlp_logger.error(f"{e}")
             return False
 
     def download_links(
