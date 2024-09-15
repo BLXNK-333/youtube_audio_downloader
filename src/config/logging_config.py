@@ -73,3 +73,11 @@ def load_logger_config(debug_mode: bool = False):
             'format'],
         logger=logging.getLogger()  # Применяем ко всему
     )
+
+    # Устанавливаем цветное форматирование для логгера yt-dlp
+    yt_dlp_logger = logging.getLogger('yt-dlp')
+    coloredlogs.install(
+        level=yt_dlp_logger.level,
+        fmt=logging_config['formatters']['yt_dlp_style']['format'],
+        logger=yt_dlp_logger
+    )

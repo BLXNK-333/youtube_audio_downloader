@@ -1,13 +1,12 @@
 import logging
 
-from .config.app_config import get_config
 from .entities import YoutubeLink
 from .api_query import ApiQuery
 from .convertor import Convertor
 from .downloader import Downloader
 from .filter import Filter
 from .utils import extract_type_and_id
-from .validator import validate_audio_format, validate_date_filter
+from .validator import validate_settings
 
 
 logger = logging.getLogger()
@@ -22,14 +21,10 @@ def download_audio(link: str):
     :return: None
     """
     try:
-        config = get_config()
+        if not validate_settings():
+            return
+
         link, link_id = extract_type_and_id(link)
-
-        if not validate_audio_format(config.download.audio_ext):
-            return
-
-        if not validate_date_filter(config.extended.filter_date):
-            return
 
         query = ApiQuery()
         _filter = Filter()

@@ -50,7 +50,7 @@ class ConfigManager:
             download=Download(
                 write_thumbnail=env.bool("WRITE_THUMBNAIL", True),
                 write_metadata=env.bool("WRITE_METADATA", True),
-                audio_ext=env.str("AUDIO_EXT") or AudioExt.BEST_,
+                audio_ext=env.str("AUDIO_EXT") or "",
                 thumbnail_resize=env.bool("THUMBNAIL_RESIZE", False),
                 thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
                 download_directory=env.str("DOWNLOAD_DIRECTORY") or "YouTube",

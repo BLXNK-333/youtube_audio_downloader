@@ -1,6 +1,7 @@
 import logging
 import re
 
+from .config.app_config import get_config
 from .entities import AudioExt
 
 logger = logging.getLogger()
@@ -14,8 +15,7 @@ def validate_audio_format(output_format: str) -> bool:
     :param output_format: (str) формат AUDIO_EXT из настроек.
     :return: (bool) True, если поддерживается, иначе False.
     """
-
-    supported_formats = {AudioExt.OPUS, AudioExt.M4A, AudioExt.MP3, AudioExt.BEST_}
+    supported_formats = {AudioExt.OPUS, AudioExt.M4A, AudioExt.MP3, ""}
     if output_format not in supported_formats:
         logger.error(
             f"\n End audio container not supported: {output_format}\n"
@@ -70,3 +70,19 @@ def validate_date_filter(filter_expression: str) -> bool:
             f"\n {tip_allowed}"
             f"\n {tip_param}")
         return False
+
+
+def validate_settings() -> bool:
+    """
+    Проверяет корректны ли некоторые настройки.
+    :return: (bool)
+    """
+    config = get_config()
+
+    if not validate_audio_format(config.download.audio_ext):
+        return False
+
+    if not validate_date_filter(config.extended.filter_date):
+        return False
+
+    return True
