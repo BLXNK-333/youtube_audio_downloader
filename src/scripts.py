@@ -2,7 +2,7 @@ import logging
 
 from .entities import YoutubeLink
 from .api_query import ApiQuery
-from .convertor import Convertor
+from .converter.converter import Converter
 from .downloader import Downloader
 from .filter import Filter
 from .utils import extract_type_and_id
@@ -28,7 +28,7 @@ def download_audio(link: str):
 
         query = ApiQuery()
         _filter = Filter()
-        convertor = Convertor()
+        convertor = Converter()
         DL = Downloader(convertor=convertor)
 
         if link == YoutubeLink.VIDEO:

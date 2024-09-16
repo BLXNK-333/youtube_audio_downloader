@@ -9,8 +9,8 @@ import random
 from yt_dlp import YoutubeDL
 
 from .config.app_config import get_config
-from .convertor import Convertor
-from .entities import AudioExt, DownloadCallback, Metadata
+from .converter.converter import Converter
+from .entities import DownloadCallback, Metadata
 from .utils import (
     remove_empty_files,
     countdown_timer,
@@ -19,7 +19,7 @@ from .utils import (
 
 
 class Downloader:
-    def __init__(self, convertor: Convertor):
+    def __init__(self, convertor: Converter):
         self._config = get_config()
         self._convertor = convertor
         self._logger = logging.getLogger()
@@ -121,8 +121,7 @@ class Downloader:
                 os.remove(callback.thumbnail_path)
             return True
 
-        except Exception as e:
-            self._yt_dlp_logger.error(f"[*downloader] Unintended exception: {e}")
+        except Exception:
             return False
 
     def download_links(
@@ -200,7 +199,7 @@ if __name__ == '__main__':
         "https://www.youtube.com/watch?v=U-xw6e-62fw"
     ]
 
-    conv = Convertor()
+    conv = Converter()
     DL = Downloader(convertor=conv)
     DL.list_available_formats("https://www.youtube.com/watch?v=3pHjAlpLmB4")
     # DL.download_links(URLS)
