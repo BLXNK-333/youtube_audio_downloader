@@ -24,14 +24,14 @@ def validate_audio_format(output_format: str) -> bool:
     return True
 
 
-def validate_date_filter(filter_expression: str) -> bool:
+def validate_date_filter(filter_expression: str | None) -> bool:
     """
     Проверяет на валидность фильтр (FILTER_DATE) из настроек.
 
     :param filter_expression: (str) Фильтр - логическое выражение.
     :return: (bool) True, если фильтр пройден, иначе False
     """
-    if filter_expression == "":
+    if not filter_expression:
         return True
 
     allowed_characters = "0123456789x(){}[],!<>=orandti"

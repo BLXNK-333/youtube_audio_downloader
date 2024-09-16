@@ -29,21 +29,24 @@ class ApiQuery:
         }
 
         response = requests.get(url, params=params)
+        snippet_videos = []
+
         if response.status_code == 200:
             data = response.json()
             if 'items' in data and len(data['items']) > 0:
                 snippet = data['items'][0]['snippet']
-                snippet_videos = [{
+                snippet_videos.append({
                     'title': snippet['title'],
                     'url': f"https://www.youtube.com/watch?v={video_id}",
                     'published': snippet['publishedAt'],
-                }]
+                })
                 self._logger.info(f"Video details received, quantity: {len(snippet_videos)}")
-                return snippet_videos
             else:
                 self._logger.error(f"No video with the specified ID was found. ID: {video_id}")
         else:
             response.raise_for_status()
+
+        return snippet_videos
 
     def get_playlist_videos_details(self, playlist_id: str) -> List[Dict[str, str]]:
         snippet_videos = []

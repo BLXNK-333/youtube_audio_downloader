@@ -1,4 +1,3 @@
-import pprint
 import time
 from typing import Dict, Any, List, Optional
 import os
@@ -21,7 +20,7 @@ from .utils import (
 class Downloader:
     def __init__(self, convertor: Converter):
         self._config = get_config()
-        self._convertor = convertor
+        self._converter = convertor
         self._logger = logging.getLogger()
         self._yt_dlp_logger = logging.getLogger('yt-dlp')
 
@@ -69,7 +68,7 @@ class Downloader:
             callback = DownloadCallback(
                 audio_path="",
                 thumbnail_path="",
-                metadata=None,
+                metadata=Metadata(title="", artist="", date="", comment=""),
                 bitrate_check=True
             )
 
@@ -88,16 +87,14 @@ class Downloader:
                     callback.thumbnail_path = d['info_dict']['thumbnails'][-1].get(
                         'filepath')
 
-            if self._write_metadata:
+            if self._write_metadata and callback.metadata:
                 info_dict = d['info_dict']
 
                 # Формируем словарь с нужными метаданными
-                callback.metadata = Metadata(
-                    title=info_dict.get('title'),
-                    artist=info_dict.get('uploader'),  # Название канала как артист
-                    date=info_dict.get('upload_date', ''),  # Год, если доступен
-                    comment=info_dict.get('webpage_url')  # Ссылка на видео
-                )
+                callback.metadata.title = info_dict.get('title', '')
+                callback.metadata.artist = info_dict.get('uploader', '')
+                callback.metadata.date = info_dict.get('upload_date', '')
+                callback.metadata.comment = info_dict.get('webpage_url', '')
 
             self._hook_callback = callback
 
@@ -110,8 +107,13 @@ class Downloader:
                 ydl.download([url])
 
             callback = self._hook_callback
+            if callback is None:
+                self._yt_dlp_logger.warning(f"[*downloader] Callback did not return.")
+                return False
+
             if callback.bitrate_check:
-                self._convertor.convert(
+                assert isinstance(callback.metadata, Metadata)
+                self._converter.convert(
                     callback.audio_path,
                     callback.thumbnail_path,
                     callback.metadata
@@ -197,14 +199,3 @@ class Downloader:
 
         with YoutubeDL(ydl_opts) as ydl:
             ydl.extract_info(video_url, download=False)
-
-
-if __name__ == '__main__':
-    URLS = [
-        "https://www.youtube.com/watch?v=U-xw6e-62fw"
-    ]
-
-    conv = Converter()
-    DL = Downloader(convertor=conv)
-    DL.list_available_formats("https://www.youtube.com/watch?v=3pHjAlpLmB4")
-    # DL.download_links(URLS)

@@ -34,5 +34,5 @@ class Metadata:
 class DownloadCallback:
     audio_path: str
     thumbnail_path: str
-    metadata: Optional[Metadata]
+    metadata: Metadata
     bitrate_check: bool

@@ -3,7 +3,6 @@ import sys
 import time
 import re
 from typing import Tuple
-import subprocess
 
 from .entities import YoutubeLink
 

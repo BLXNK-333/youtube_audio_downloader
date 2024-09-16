@@ -36,6 +36,7 @@ class Filter:
         return [sn for sn in snipped_objs if sn.title not in downloaded_names]
 
     def _filter_by_download_date(self, snippet_objs: List[Snippet]) -> List[Snippet]:
+        assert self._filter_date is not None  # check for pyright
         filter_date = re.sub(r"[\[\]\s]", "", self._filter_date).lower()
 
         def filter_func(snippet: Snippet) -> bool:

@@ -7,7 +7,9 @@ from PIL import Image
 from mutagen.oggopus import OggOpus
 from mutagen.mp4 import MP4, MP4Cover
 from mutagen.flac import Picture
-from mutagen.id3 import ID3, APIC, error as ID3Error
+from mutagen.id3 import ID3
+from mutagen.id3._frames import APIC
+from mutagen.id3._util import error as ID3Error
 
 from ..config.app_config import get_config
 

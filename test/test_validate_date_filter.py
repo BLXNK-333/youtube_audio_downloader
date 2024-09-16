@@ -13,7 +13,7 @@ class TestValidateDateFilter(unittest.TestCase):
         self.assertTrue(validate_date_filter("2017 < x <= 2024"))
         self.assertTrue(validate_date_filter("x == 2020"))
         self.assertTrue(validate_date_filter("x in {2017, 2019, 2023}"))
-        self.assertTrue(validate_date_filter("None"))
+        self.assertTrue(validate_date_filter(""))
         self.assertTrue(validate_date_filter("(2017 < x) or (x == 2020)"))
 
     def test_invalid_characters(self):

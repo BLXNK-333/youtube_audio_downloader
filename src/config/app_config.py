@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from environs import Env
 from threading import Lock
 
-from ..entities import AudioExt
-
 
 @dataclass
 class Api:
@@ -26,7 +24,7 @@ class Download:
 @dataclass
 class Extended:
     debug_mode: bool
-    filter_date: Optional[str]
+    filter_date: str
 
 
 @dataclass
@@ -37,7 +35,7 @@ class Config:
 
 
 class ConfigManager:
-    _instance: Config = None
+    _instance: Optional[Config] = None
     _lock: Lock = Lock()
 
     @classmethod
@@ -58,7 +56,7 @@ class ConfigManager:
             ),
             extended=Extended(
                 debug_mode=env.bool("DEBUG_MODE", False),
-                filter_date=env.str("FILTER_DATE", None)
+                filter_date=env.str("FILTER_DATE") or ""
             )
         )
 
@@ -69,6 +67,8 @@ class ConfigManager:
                 env = Env()
                 env.read_env(env_file)
                 cls.__create_config(env)
+
+            assert cls._instance is not None
             return cls._instance
 
 

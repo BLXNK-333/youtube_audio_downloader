@@ -2,7 +2,8 @@ import os
 import logging
 from mutagen.oggopus import OggOpus
 from mutagen.mp4 import MP4
-from mutagen.id3 import ID3, TIT2, TPE1, TDRC, COMM
+from mutagen.id3 import ID3
+from mutagen.id3._frames import TIT2, TPE1, TDRC, COMM
 
 from ..entities import Metadata
 

@@ -12,7 +12,7 @@ class Converter:
         self._image_embedder = ImageEmbedder()
         self._metadata_handler = MetadataHandler()
 
-    def convert(self, audio_path: str, cover_path: str, metadata: Metadata = None) -> None:
+    def convert(self, audio_path: str, cover_path: str, metadata: Metadata) -> None:
         converted_audio = self._audio_converter.convert_audio(audio_path)
 
         if self._config.download.write_thumbnail:
