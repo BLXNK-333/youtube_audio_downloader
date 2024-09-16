@@ -1,0 +1,18 @@
+# Используемые библиотеки и лицензии
+
+Проект использует следующие сторонние библиотеки, каждая из которых лицензирована в
+соответствии с указанными условиями:
+
+1. **Pillow**
+   Лицензия: Historical Permission Notice and Disclaimer (HPND)
+   Подробнее: https://github.com/python-pillow/Pillow/blob/main/LICENSE
+
+2. **yt-dlp**
+   Лицензия: The Unlicense
+   Подробнее: https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE
+
+3. **environs**
+   Лицензия: MIT License
+   Подробнее: https://github.com/sloria/environs/blob/main/LICENSE
+
+Каждая из этих библиотек используется в проекте в соответствии с их лицензионными условиями.
