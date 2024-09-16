@@ -71,7 +71,7 @@ class AudioConverter:
             # (длительность в секундах * 1000). Переводим в кбит/с
             bitrate = int((file_size * 8) / (duration * 1000)) + 1
             self._yt_dlp_logger.info(
-                f"[*convertor] Calculated bitrate for {file_path}: {bitrate} kbps")
+                f"[*convertor] Calculated bitrate for audio: {bitrate} kbps")
             return bitrate
 
         except subprocess.CalledProcessError as e:
@@ -115,5 +115,4 @@ class AudioConverter:
         cmd.append(output_filepath)
 
         self._execute_ffmpeg(cmd)
-        print(self._get_bitrate(output_filepath))
         return output_filepath

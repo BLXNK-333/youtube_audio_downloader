@@ -42,7 +42,7 @@ logging_config = {
     "loggers": {
         "yt-dlp": {
             "handlers": ["yt_dlp_handler"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": False
         }
     },

@@ -41,6 +41,10 @@ class Downloader:
         :param save_path: Путь для сохранения скачанных файлов.
         :return: Словарь с опциями.
         """
+
+        # Генерируем случайный лимит от 300 до 800 KB/s
+        random_ratelimit = random.randint(300, 800) * 1024
+
         ydl_opts = {
             'format': "bestaudio/best",
             'outtmpl': os.path.join(save_path, 'tmp', self._filename_format),
@@ -51,6 +55,7 @@ class Downloader:
             }],
             'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
             'whritemetadata': self._write_metadata,  # Загружаем метаданные
+            'ratelimit': random_ratelimit
         }
 
         return ydl_opts

@@ -39,11 +39,11 @@
 
 
 - **THUMBNAIL_RESIZE:** Конвертировать миниатюру в изображение меньшего размера.
-    - Пример: `THUMBNAIL_RESIZE="FALSE"`
+    - Пример: `THUMBNAIL_RESIZE="TRUE"`
 
 
 - **THUMBNAIL_MAX_WIDTH:** Максимальная ширина изображения после изменения размера.
-    - Пример: `THUMBNAIL_MAX_WIDTH="300"`
+    - Пример: `THUMBNAIL_MAX_WIDTH="350"`
 
 
 - **DOWNLOAD_DIRECTORY:** Путь, куда будут загружаться все файлы (
