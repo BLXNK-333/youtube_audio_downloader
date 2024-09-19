@@ -28,6 +28,7 @@ class Downloader:
         self._write_metadata = self._config.download.write_metadata
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
+        self._skip_shorts = self._config.download.skip_shorts
 
         self._delay_between_downloads = 13
         self._user_agents = read_user_agents()
@@ -42,7 +43,7 @@ class Downloader:
         """
 
         # Генерируем случайный лимит от 300 до 800 KB/s
-        random_ratelimit = random.randint(300, 800) * 1024
+        random_ratelimit = random.randint(300, 600) * 1024
 
         ydl_opts = {
             'format': "bestaudio/best",
@@ -98,12 +99,27 @@ class Downloader:
 
             self._hook_callback = callback
 
+    def _check_shorts(self, ydl: YoutubeDL, url: str) -> bool:
+        """Проверяет, является ли видео коротким или нет."""
+        # Извлекаем информацию о видео без загрузки
+        info_dict = ydl.extract_info(url, download=False)
+
+        duration = info_dict.get('duration', 0)
+        if 0 <= duration <= 60:
+            self._yt_dlp_logger.info(
+                f"Skip video format 'shorts': {info_dict.get('title', '')}")
+            return True
+        return False
+
     def _download_attempt(self, url: str, save_path: str) -> bool:
         user_agent = random.choice(self._user_agents)
         ydl_opts = self._get_ydl_options(save_path, user_agent)
 
         try:
             with YoutubeDL(ydl_opts) as ydl:
+                if self._skip_shorts and self._check_shorts(ydl, url):
+                    return False
+                # Если видео не является shorts, загружаем его
                 ydl.download([url])
 
             callback = self._hook_callback

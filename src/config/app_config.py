@@ -19,6 +19,7 @@ class Download:
     thumbnail_max_width: int
     download_directory: str
     filename_format: str
+    skip_shorts: bool
 
 
 @dataclass
@@ -50,9 +51,10 @@ class ConfigManager:
                 write_metadata=env.bool("WRITE_METADATA", True),
                 audio_ext=env.str("AUDIO_EXT") or "",
                 thumbnail_resize=env.bool("THUMBNAIL_RESIZE", False),
-                thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 300),
+                thumbnail_max_width=env.int("THUMBNAIL_MAX_WIDTH", 350),
                 download_directory=env.str("DOWNLOAD_DIRECTORY") or "YouTube",
-                filename_format=env.str("FILENAME_FORMAT") or "%(title)s.%(ext)s"
+                filename_format=env.str("FILENAME_FORMAT") or "%(title)s.%(ext)s",
+                skip_shorts=env.bool("SKIP_SHORTS", True)
             ),
             extended=Extended(
                 debug_mode=env.bool("DEBUG_MODE", False),
