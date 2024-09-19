@@ -33,7 +33,7 @@ def download_audio(link: str):
 
         if link == YoutubeLink.VIDEO:
             # Скрипт для скачивания аудио из ссылки на видео.
-            snippets = query.get_video_details(link_id)
+            snippets = query.get_video_snippet(link_id)
             filtered_snippets, len_snippets = _filter.apply_filters(
                 snippets,
                 filter_date=False
@@ -42,12 +42,32 @@ def download_audio(link: str):
 
         elif link == YoutubeLink.PLAYLIST:
             # Скрипт для скачивания аудио из ссылки на плейлист.
-            playlist_name = query.get_playlist_title(link_id)
-            snippets = query.get_playlist_videos_details(link_id)
+            pl_info = query.get_channel_info(link_id)
+            playlist_name = pl_info["title"]
+
+            snippets = query.get_playlist_snippets(link_id)
             filtered_snippets, len_snippets = _filter.apply_filters(
                 snippets,
                 playlist_name=playlist_name
             )
+
+            DL.download_links(
+                urls=filtered_snippets,
+                playlist_name=playlist_name,
+                playlist_length=len_snippets
+            )
+
+        elif link == YoutubeLink.CHANNEL:
+            pl_info = query.get_channel_info(link_id)
+            playlist_name = pl_info["title"]
+            link_id = pl_info["uploads"]
+
+            snippets = query.get_playlist_snippets(link_id)
+            filtered_snippets, len_snippets = _filter.apply_filters(
+                snippets,
+                playlist_name=playlist_name
+            )
+
             DL.download_links(
                 urls=filtered_snippets,
                 playlist_name=playlist_name,

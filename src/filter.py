@@ -57,6 +57,9 @@ class Filter:
 
         return [sn for sn in snippet_objs if filter_func(sn)]
 
+    def _filter_private_video(self, snippet_objs: List[Snippet]) -> List[Snippet]:
+        return [sn for sn in snippet_objs if sn.title != "Private video"]
+
     def apply_filters(
             self,
             video_snippets: List[Dict[str, str]],
@@ -83,6 +86,7 @@ class Filter:
         os.makedirs(directory, exist_ok=True)
 
         snippet_objs = self._convert_dict_to_obj(video_snippets)
+        snippet_objs = self._filter_private_video(snippet_objs)
         len_snippets = len(snippet_objs)
 
         if filter_date:

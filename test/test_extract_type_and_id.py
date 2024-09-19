@@ -36,6 +36,12 @@ class TestExtractIdAndType(unittest.TestCase):
         expected_id = ""
         self.assertEqual(extract_type_and_id(url), (expected_entity, expected_id))
 
+    def test_channel_id_extraction(self):
+        url = "https://www.youtube.com/@808nation"
+        expected_entity = YoutubeLink.CHANNEL
+        expected_id = "@808nation"
+        self.assertEqual(extract_type_and_id(url), (expected_entity, expected_id))
+
 
 if __name__ == '__main__':
     unittest.main()

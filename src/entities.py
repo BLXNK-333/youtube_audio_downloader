@@ -1,11 +1,11 @@
 from enum import StrEnum
 from dataclasses import dataclass
-from typing import Optional
 
 
 class YoutubeLink(StrEnum):
     VIDEO = "VIDEO"
     PLAYLIST = "PLAYLIST"
+    CHANNEL = "CHANNEL"
     BAD_LINK = "BAD_LINK"
 
 
