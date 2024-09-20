@@ -37,6 +37,15 @@ class ApiQuery:
                 return None  # Возвращаем None при неудачном статусе
 
             return response.json()  # Возвращаем результат при успешном запросе
+
+        except requests.ConnectionError:
+            self._logger.error("Connection error: There may be problems with the Internet.")
+            return None
+
+        except requests.Timeout:
+            self._logger.error("Request timed out: The server did not respond on time.")
+            return None
+
         except requests.RequestException as e:
             self._logger.error(f"API request error: {e}")
             return None
