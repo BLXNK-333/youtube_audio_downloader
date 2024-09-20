@@ -26,6 +26,7 @@ class Download:
 class Extended:
     debug_mode: bool
     filter_date: str
+    proxy: str
 
 
 @dataclass
@@ -58,7 +59,8 @@ class ConfigManager:
             ),
             extended=Extended(
                 debug_mode=env.bool("DEBUG_MODE", False),
-                filter_date=env.str("FILTER_DATE") or ""
+                filter_date=env.str("FILTER_DATE") or "",
+                proxy=env.str("PROXY") or ""
             )
         )
 

@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import re
+import subprocess
 from typing import Tuple
 
 from .entities import YoutubeLink
@@ -77,3 +78,15 @@ def read_user_agents(filepath="user_agents.txt"):
     except FileNotFoundError:
         print(f"File '{filepath}' not found.")
         return []
+
+
+def open_settings():
+    # Определяем редактор из переменных окружения или используем nano по умолчанию
+    editor = os.getenv('VISUAL') or os.getenv('EDITOR') or 'nano'
+
+    # Открываем .env файл в указанном редакторе
+    config_path = '.env'
+    try:
+        subprocess.run([editor, config_path])
+    except Exception as e:
+        print(f"Failed to open the settings file: {e}")

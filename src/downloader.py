@@ -1,5 +1,5 @@
-import time
 from typing import Dict, Any, List, Optional
+import time
 import os
 import shutil
 import logging
@@ -30,6 +30,7 @@ class Downloader:
         self._download_directory = self._config.download.download_directory
         self._filename_format = self._config.download.filename_format
         self._skip_shorts = self._config.download.skip_shorts
+        self._proxy = self._config.extended.proxy
 
         self._delay_between_downloads = 13
         self._user_agents = read_user_agents()
@@ -55,6 +56,8 @@ class Downloader:
             'whritemetadata': self._write_metadata,  # Загружаем метаданные
             'ratelimit': random_ratelimit
         }
+        if self._proxy:
+            ydl_opts['proxy'] = self._proxy
 
         return ydl_opts
 
@@ -141,8 +144,7 @@ class Downloader:
                 os.remove(callback.thumbnail_path)
             return Attempt.SUCCESS
 
-        except Exception as e:
-            self._yt_dlp_logger.error(f"[*downloader] {e}")
+        except Exception:
             return Attempt.ERROR
 
     def download_links(

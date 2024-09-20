@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, List, Optional
+from urllib.parse import urlparse
 
 import requests
 from .config.app_config import get_config
@@ -11,11 +12,23 @@ class ApiQuery:
         self._logger = logging.getLogger()
         self._api_key_yt = self._config.api.yt_token
         self._endpoint = self._config.api.endpoint
+        self._proxy = self._parse_proxy(self._config.extended.proxy)
+
+    def _parse_proxy(self, proxy_url: str) -> Optional[Dict[str, str]]:
+        """Парсит прокси URL и возвращает словарь для requests."""
+        if proxy_url == "":
+            return None
+        parsed = urlparse(proxy_url)
+        proxy_scheme = parsed.scheme
+
+        if proxy_scheme not in {"http", "https", "socks4", "socks5"}:
+            raise ValueError(f"Unsupported proxy scheme: {proxy_scheme}")
+        return {proxy_scheme: proxy_url}
 
     def _make_request(self, url: str, params: Dict) -> Optional[Dict]:
         """Выполняет запрос к API и обрабатывает результат."""
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, proxies=self._proxy)
             if response.status_code != 200:
                 self._logger.error(
                     f"API request failed. Status code: {response.status_code}, "
