@@ -7,6 +7,7 @@ import random
 
 from yt_dlp import YoutubeDL
 
+from .entities import Attempt
 from .config.app_config import get_config
 from .converter.converter import Converter
 from .entities import DownloadCallback, Metadata
@@ -50,9 +51,6 @@ class Downloader:
             'outtmpl': os.path.join(save_path, 'tmp', self._filename_format),
             'progress_hooks': [self._download_complete_hook],  # Хук для обработки
             'headers': {'User-Agent': useragent},
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',  # Извлекаем аудио
-            }],
             'writethumbnail': self._write_thumbnail,  # Загружаем миниатюры
             'whritemetadata': self._write_metadata,  # Загружаем метаданные
             'ratelimit': random_ratelimit
@@ -78,8 +76,7 @@ class Downloader:
             if format_id not in format_dict:
                 callback.bitrate_check = False
 
-            callback.audio_path = (os.path.splitext(d['filename'])[0] +
-                                   "." + format_dict[format_id])
+            callback.audio_path = d['filename']
 
             # Получаем информацию о миниатюре
             if self._write_thumbnail:
@@ -107,25 +104,25 @@ class Downloader:
         duration = info_dict.get('duration', 0)
         if 0 <= duration <= 60:
             self._yt_dlp_logger.info(
-                f"Skip video format 'shorts': {info_dict.get('title', '')}")
+                f"[*downloader] Skip video format 'shorts': {info_dict.get('title', '')}")
             return True
         return False
 
-    def _download_attempt(self, url: str, save_path: str) -> bool:
+    def _download_attempt(self, url: str, save_path: str) -> Attempt:
         user_agent = random.choice(self._user_agents)
         ydl_opts = self._get_ydl_options(save_path, user_agent)
 
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 if self._skip_shorts and self._check_shorts(ydl, url):
-                    return False
+                    return Attempt.SHORTS
                 # Если видео не является shorts, загружаем его
                 ydl.download([url])
 
             callback = self._hook_callback
             if callback is None:
                 self._yt_dlp_logger.warning(f"[*downloader] Callback did not return.")
-                return False
+                return Attempt.ERROR
 
             if callback.bitrate_check:
                 assert isinstance(callback.metadata, Metadata)
@@ -142,10 +139,10 @@ class Downloader:
                 os.remove(callback.audio_path)
             if callback.thumbnail_path:
                 os.remove(callback.thumbnail_path)
-            return True
+            return Attempt.SUCCESS
 
         except Exception:
-            return False
+            return Attempt.ERROR
 
     def download_links(
             self,
@@ -164,6 +161,7 @@ class Downloader:
         :return: None
         """
         download_counter = playlist_length - len(urls)
+        skipped_counter = 0
         save_path = self._download_directory
         if playlist_name:
             save_path = os.path.join(save_path, playlist_name)
@@ -176,13 +174,18 @@ class Downloader:
 
                 url = next(iter(urls))
                 download_counter += 1
-                self._logger.info(f"Loading... [{download_counter}/{playlist_length}]")
+                cnt_text = f"Loading... {"\033[32m"}[{download_counter}/{playlist_length}]{"\033[0m"}"
+                cnt_text += f", Skipped shorts: {skipped_counter}" if skipped_counter else ""
+                self._logger.info(cnt_text)
 
                 download_result = self._download_attempt(url, save_path)
-                if not download_result:
+                if download_result == Attempt.ERROR:
                     _bot_block_cnt += 1
                     download_counter -= 1
                 else:
+                    if download_result == Attempt.SHORTS:
+                        skipped_counter += 1
+                        download_counter -= 1
                     _bot_block_cnt = 0
                     urls.remove(url)
 

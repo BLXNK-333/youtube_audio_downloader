@@ -13,6 +13,7 @@ class AudioExt(StrEnum):
     OPUS = "opus"
     MP3 = "mp3"
     M4A = "m4a"
+    WEBM = "webm"
 
 
 @dataclass
@@ -36,3 +37,9 @@ class DownloadCallback:
     thumbnail_path: str
     metadata: Metadata
     bitrate_check: bool
+
+
+class Attempt(StrEnum):
+    SUCCESS = "SUCCESS"
+    ERROR = "ERROR"
+    SHORTS = "SHORTS"

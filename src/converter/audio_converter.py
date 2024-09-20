@@ -30,10 +30,13 @@ class AudioConverter:
         strip_ext = ext.lstrip(".")
         scheme = strip_ext
 
-        if self._audio_ext == AudioExt.OPUS and strip_ext == AudioExt.M4A:
+        if strip_ext == AudioExt.WEBM:
+            scheme = AudioExt.OPUS
+            output_filepath += f".{AudioExt.OPUS}"
+        elif self._audio_ext == AudioExt.OPUS and strip_ext == AudioExt.M4A:
             scheme = "opus_convert"
             output_filepath += f".{AudioExt.OPUS}"
-        elif self._audio_ext == AudioExt.M4A and strip_ext == AudioExt.OPUS:
+        elif self._audio_ext == AudioExt.M4A and strip_ext == AudioExt.WEBM:
             scheme = "m4a_convert"
             output_filepath += f".{AudioExt.M4A}"
         elif self._audio_ext == AudioExt.MP3:
@@ -105,7 +108,7 @@ class AudioConverter:
         output_filepath, acodec, is_need_bitrate = self._get_output_params(audio_path)
 
         cmd = [
-            "ffmpeg",
+            "ffmpeg", "-y",
             "-i", audio_path,
             "-c:a", acodec
         ]
