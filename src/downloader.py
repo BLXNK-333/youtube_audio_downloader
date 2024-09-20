@@ -141,7 +141,8 @@ class Downloader:
                 os.remove(callback.thumbnail_path)
             return Attempt.SUCCESS
 
-        except Exception:
+        except Exception as e:
+            self._yt_dlp_logger.error(f"[*downloader] {e}")
             return Attempt.ERROR
 
     def download_links(

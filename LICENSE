@@ -15,4 +15,8 @@
    Лицензия: MIT License
    Подробнее: https://github.com/sloria/environs/blob/main/LICENSE
 
+4. **coloredlogs**
+   Лицензия: MIT License
+   Подробнее: https://github.com/xolox/python-coloredlogs/blob/main/LICENSE
+
 Каждая из этих библиотек используется в проекте в соответствии с их лицензионными условиями.
