@@ -192,7 +192,7 @@ PROXY = ""
 
 
 - **FILTER_DOWNLOADED_RECURSIVE:**
-    - **Описание: Переменная FILTER_DOWNLOADED_RECURSIVE определяет, будет ли 
+    - **Описание**: Переменная FILTER_DOWNLOADED_RECURSIVE определяет, будет ли 
       фильтрация уже загруженных файлов производиться рекурсивно по всем подкаталогам 
       в указанной директории загрузок.
     - Пример: `FILTER_DOWNLOADED_RECURSIVE="FALSE"`
