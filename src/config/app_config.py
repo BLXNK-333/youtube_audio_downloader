@@ -26,6 +26,7 @@ class Download:
 class Extended:
     debug_mode: bool
     filter_date: str
+    filter_downloaded_recursive: bool
     proxy: str
 
 
@@ -60,6 +61,7 @@ class ConfigManager:
             extended=Extended(
                 debug_mode=env.bool("DEBUG_MODE", False),
                 filter_date=env.str("FILTER_DATE") or "",
+                filter_downloaded_recursive=env.bool("FILTER_DOWNLOADED_RECURSIVE") or False,
                 proxy=env.str("PROXY") or ""
             )
         )

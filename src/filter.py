@@ -14,6 +14,7 @@ class Filter:
         self._logger = logging.getLogger()
         self._filter_date = self._config.extended.filter_date
         self._download_directory = self._config.download.download_directory
+        self._filter_recursive = self._config.extended.filter_downloaded_recursive
 
     @staticmethod
     def _convert_dict_to_obj(video_snippets: List[Dict[str, str]]) -> List[Snippet]:
@@ -29,10 +30,27 @@ class Filter:
     def _convert_obj_to_list_urls(snippets_objs: List[Snippet]) -> List[str]:
         return [snippet.url for snippet in snippets_objs]
 
-    @staticmethod
-    def _filter_already_downloaded(snipped_objs: List[Snippet], directory: str):
-        downloaded_names = {os.path.splitext(f)[0] for f in os.listdir(directory)
-                            if os.path.isfile(os.path.join(directory, f))}
+    def _filter_already_downloaded(self, snipped_objs: List[Snippet], directory: str):
+        """
+        Фильтрует уже загруженные видео, проверяя файлы в указанной директории.
+        Если filter_downloaded_recursive=True в конфигурации, будет рекурсивно обходить
+        все подкаталоги.
+
+        :param snipped_objs: (List[Snippet]) Список объектов Snippet для фильтрации.
+        :param directory: (str) Директория для проверки.
+        :return: (List[Snippet]) Отфильтрованный список объектов Snippet.
+        """
+        downloaded_names = set()
+
+        if self._filter_recursive:
+            # Рекурсивный обход директорий
+            for root, _, files in os.walk(self._download_directory):
+                downloaded_names.update({os.path.splitext(f)[0] for f in files})
+        else:
+            # Обычный обход файлов в текущей директории
+            downloaded_names = {os.path.splitext(f)[0] for f in os.listdir(directory)
+                                if os.path.isfile(os.path.join(directory, f))}
+
         return [sn for sn in snipped_objs if sn.title not in downloaded_names]
 
     def _filter_by_download_date(self, snippet_objs: List[Snippet]) -> List[Snippet]:
@@ -92,6 +110,7 @@ class Filter:
         if filter_date and self._filter_date:
             snippet_objs = self._filter_by_download_date(snippet_objs)
             len_snippets = len(snippet_objs)
+
         if filter_downloaded:
             snippet_objs = self._filter_already_downloaded(snippet_objs, directory)
             self._logger.info(

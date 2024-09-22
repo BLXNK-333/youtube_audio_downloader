@@ -93,6 +93,8 @@ DOWNLOAD_DIRECTORY = "/home/blxnk/Downloads/YouTube"
 DEBUG_MODE = "FALSE"
 # Фильтр по дате загрузки. Если не указан, не применяет фильтр.
 FILTER_DATE = ""
+# Сканирует весь каталог загрузок, для фильтрации уже скачанных. 
+FILTER_DOWNLOADED_RECURSIVE = "FALSE"
 # Прокси сервер.
 PROXY = ""
 ```
@@ -189,6 +191,13 @@ PROXY = ""
     - Пример: `FILTER_DATE="[x] >= 2017"`
 
 
+- **FILTER_DOWNLOADED_RECURSIVE:**
+    - **Описание: Переменная FILTER_DOWNLOADED_RECURSIVE определяет, будет ли 
+      фильтрация уже загруженных файлов производиться рекурсивно по всем подкаталогам 
+      в указанной директории загрузок.
+    - Пример: `FILTER_DOWNLOADED_RECURSIVE="FALSE"`
+
+
 - **PROXY:**
     - **Описание:** Переменная `PROXY` позволяет задать прокси-сервер, который будет
       использоваться для загрузки аудио через HTTP или SOCKS5. Прокси может быть полезен
@@ -207,4 +216,3 @@ PROXY = ""
         # Для SOCKS5 прокси с авторизацией:
         PROXY="socks5://username:password@proxy.example.com:1080"
         ```
-    

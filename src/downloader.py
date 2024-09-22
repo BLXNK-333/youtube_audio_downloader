@@ -44,7 +44,7 @@ class Downloader:
         :return: Словарь с опциями.
         """
 
-        # Генерируем случайный лимит от 300 до 800 KB/s
+        # Генерируем случайный лимит от 300 до 600 KB/s
         random_ratelimit = random.randint(300, 600) * 1024
 
         ydl_opts = {
