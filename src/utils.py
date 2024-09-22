@@ -90,3 +90,17 @@ def open_settings():
         subprocess.run([editor, config_path])
     except Exception as e:
         print(f"Failed to open the settings file: {e}")
+
+
+def normalize_string(s: str) -> str:
+    """
+    Заменяет некоторые специальных символов в строке на '?'.
+    :param s: (str) Входная строка для замены.
+    """
+    # Добавьте сюда любые другие символы, которые хотите заменить
+    special_chars = r'[｜|/⧸／*＊☆★•⁕]'
+    # Заменяем специальные символы на '?'
+    s = re.sub(special_chars, '?', s)
+    # Заменяем несколько пробелов на один
+    s = re.sub(r'\s+', ' ', s)
+    return s.strip()

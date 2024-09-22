@@ -6,6 +6,7 @@ from datetime import datetime
 
 from .config.app_config import get_config
 from .entities import Snippet
+from .utils import normalize_string
 
 
 class Filter:
@@ -45,13 +46,16 @@ class Filter:
         if self._filter_recursive:
             # Рекурсивный обход директорий
             for root, _, files in os.walk(self._download_directory):
-                downloaded_names.update({os.path.splitext(f)[0] for f in files})
+                downloaded_names.update({normalize_string(os.path.splitext(f)[0])
+                                         for f in files})
         else:
             # Обычный обход файлов в текущей директории
-            downloaded_names = {os.path.splitext(f)[0] for f in os.listdir(directory)
+            downloaded_names = {normalize_string(os.path.splitext(f)[0])
+                                for f in os.listdir(directory)
                                 if os.path.isfile(os.path.join(directory, f))}
 
-        return [sn for sn in snipped_objs if sn.title not in downloaded_names]
+        return [sn for sn in snipped_objs
+                if normalize_string(sn.title) not in downloaded_names]
 
     def _filter_by_download_date(self, snippet_objs: List[Snippet]) -> List[Snippet]:
         assert self._filter_date is not None  # check for pyright
