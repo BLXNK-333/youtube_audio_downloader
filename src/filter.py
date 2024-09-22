@@ -89,7 +89,7 @@ class Filter:
         snippet_objs = self._filter_private_video(snippet_objs)
         len_snippets = len(snippet_objs)
 
-        if filter_date:
+        if filter_date and self._filter_date:
             snippet_objs = self._filter_by_download_date(snippet_objs)
             len_snippets = len(snippet_objs)
         if filter_downloaded:

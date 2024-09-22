@@ -42,8 +42,8 @@ def download_audio(link: str):
 
         elif link == YoutubeLink.PLAYLIST:
             # Скрипт для скачивания аудио из ссылки на плейлист.
-            pl_info = query.get_channel_info(link_id)
-            if pl_info:
+            pl_info = query.get_playlist_info(link_id)
+            if pl_info is None:
                 return
             playlist_name = pl_info["title"]
 
