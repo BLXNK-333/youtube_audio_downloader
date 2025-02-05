@@ -1,9 +1,16 @@
 import argparse
+import subprocess
+import sys
 
 from src.config.app_config import get_config
 from src.config.logging_config import load_logger_config
 from src.utils import open_settings
 from src.scripts import download_audio
+
+
+def update():
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
+                   check=True)
 
 
 def main():
@@ -66,4 +73,7 @@ def backdoor(url: str):
 
 
 if __name__ == '__main__':
+    # TODO:
+    #  1. Добавить фильтр по времени, типо как SKIP_SHORTS
+    update()
     main()
