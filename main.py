@@ -9,8 +9,10 @@ from src.scripts import download_audio
 
 
 def update():
-    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
-                   check=True)
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--upgrade", "pip", "yt-dlp"],
+        check=True)
+    print()
 
 
 def main():
@@ -60,6 +62,7 @@ def main():
         open_settings()
     elif args.url:
         # Вызываем функцию для загрузки аудио
+        update()
         download_audio(args.url)
     else:
         parser.print_help()
@@ -75,5 +78,4 @@ def backdoor(url: str):
 if __name__ == '__main__':
     # TODO:
     #  1. Добавить фильтр по времени, типо как SKIP_SHORTS
-    update()
     main()
