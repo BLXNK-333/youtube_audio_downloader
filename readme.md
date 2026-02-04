@@ -23,7 +23,7 @@
    
 3.  Перейдите в репозиторий и установите виртуальное окружение в нем:
     ```bash
-    python3 -m venv --copies .venv
+    python3.12 -m venv .venv
     source .venv/bin/activate
     unset all_proxy && unset ALL_PROXY
     pip install --upgrade pip
